@@ -1,2 +1,2 @@
 # R_MAC_CJ
-MAC R scripts from here.
+This is the MAC_CJ R studio working directory
