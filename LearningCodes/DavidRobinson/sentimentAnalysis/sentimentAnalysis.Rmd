@@ -1,0 +1,149 @@
+---
+title: "sentimentAnalysis: Tidy analysis"
+author: "C.J. Liu"
+date: "1/29/2017"
+output:
+  html_document:
+    depth: 3
+    highlight: tango
+    number_sections: yes
+    theme: united
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+    word_document:
+      toc: yes
+  word_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T)
+```
+
+Learning codes from the [David Robinson](http://varianceexplained.org/r/yelp-sentiment/) sentiment analysis. The main packages used are `tidytext` and `tidyverse` suits. The data was downloaded from [Yelp](https://www.yelp.com/dataset_challenge).
+
+## Load libraries
+```{r libraries}
+suppressMessages(require(tidyverse))
+suppressMessages(require(tidytext))
+suppressMessages(require(stringr))
+suppressMessages(require(jsonlite))
+```
+
+## Read data into data frame
+
+The review.json has *4153150* rows. Each row is a review in json object format. Now I load first *20,000* reviews
+```{r read data}
+reviewFile <- "yelp_academic_dataset_review.json"
+
+reviewLines <- read_lines(reviewFile, n_max = 200000, progress = F)
+```
+
+The fastest way to process is to combine into a single JSON string and use `fromJSON` and `flatten`
+```{r}
+# stringr::str_c combined character vector into a big json string
+reviewsCombined <- str_c('[', str_c(reviewLines, collapse = ', '), ']')
+
+# fromJSON convert one row json string into data frame
+# tbl_df comvert data.frame to table source
+reviews <- fromJSON(reviewsCombined) %>% flatten() %>% tbl_df()
+reviews
+```
+
+Use `unnest_tokens` to turn each reviews into one-row-per-term-document
+```{r}
+
+# remove stop words and '--'
+reviewWords <- reviews %>% select(review_id, business_id, stars, text) %>% unnest_tokens(word, text) %>% filter(! word %in% stop_words$word, str_detect(word, "^[a-z']+$"))
+```
+
+Use AFINN lexicon which provides a positivity score for each word. -5 most negative and 5 for most positive. `sentiments` in `tidytext` provides serveral lexicons.
+```{r}
+AFINN <- sentiments %>% filter(lexicon == 'AFINN') %>% select(word, afinn_score = score)
+
+```
+inner_join operation AFINN with reviewWords
+```{r}
+reviewsSentiment <- reviewWords %>% inner_join(AFINN, by = "word") %>% group_by(review_id, stars) %>% summarise(sentiment = mean(afinn_score))
+```
+
+We have an average sentiment alongside the star ratings. 
+```{r}
+theme_set(theme_bw())
+
+ggplot(reviewsSentiment, aes(stars, sentiment, group = stars)) + 
+  geom_boxplot(aes(color = as.factor(stars))) +
+  ylab("Average sentiment score")
+```
+
+*The sentiment scores are certainly correlated with positivity ratings. But we do see that there's a large amount of predicion error- some 5-star reviews have a highly negative sentiment score, and vise versa.*
+
+*The algorithm works at the word level, if we want to improve approach we need to figure out which words are suggestive of positive reviews and which are negative?*
+
+*To examine this, let's create a per-word summary, and see which words tend to appear in positive or negative reviews.*
+
+```{r}
+reviewWordsCounted <- reviewWords %>% count(review_id, business_id, stars, word) %>% ungroup()
+reviewWordsCounted
+
+wordSummaries <- reviewWordsCounted %>%  group_by(word) %>% summarize(business = n_distinct(business_id), reviews = n(), uses = sum(n), average_stars = mean(stars)) %>% ungroup()
+wordSummaries
+```
+
+We can start by looking only at words that appear in at least 200 (out of 200,000) reviews. Both because rare words will have noisier measurement (a few good or bad reviews could shift the balance), and because they're less likely to be useful in classifying future reviews or text. I also filter for ones that appear in at least 10 businesses (others are likely to be specific to a particular restaurant) 
+```{r}
+wordSummariesFiltered <- wordSummaries %>% filter(reviews >=200, business >= 10)
+wordSummariesFiltered
+```
+
+What were the most positive and negative words?
+```{r}
+wordSummariesFiltered %>% arrange(desc(average_stars))
+wordSummariesFiltered %>% arrange(average_stars)
+```
+
+Also makes a lot of sense. We can also plot positivity by frequency:
+```{r}
+ggplot(wordSummariesFiltered, aes(reviews, average_stars)) +
+  geom_point() +
+  geom_text(aes(label = word), check_overlap = T, vjust = 1, hjust = 1) +
+  scale_x_log10() +
+  geom_hline(yintercept = mean(reviews$stars), color = 'red', lty = 2) + 
+  xlab("# of reviews") +
+  ylab("Average Stars")
+```
+
+Combine and compare the two datasets with inner_join.
+```{r}
+wordsAFINN <- wordSummariesFiltered %>% inner_join(AFINN, by = 'word')
+wordsAFINN
+```
+
+```{r}
+ggplot(wordsAFINN, aes(afinn_score, average_stars, group = afinn_score)) +
+  geom_boxplot() +
+  xlab("AFINN score of word") + 
+  ylab("Average stars of reviews with this word")
+```
+
+```{r}
+ggplot(wordsAFINN, aes(afinn_score, average_stars, group = afinn_score)) +
+  geom_point(aes(size = reviews)) +
+  geom_text(aes(label = word), check_overlap = T) +
+  xlab("AFINN score of word") + 
+  ylab("Average stars of reviews with this word")
+```
+
+```{r}
+ggplot(wordsAFINN, aes(reviews, average_stars)) +
+  geom_point(aes(color = afinn_score)) +
+  geom_text(aes(label = word), check_overlap = T, vjust = 1, hjust = 1) +
+  scale_color_gradient(low = "#00AFBB", high = "#FC3E07") +
+  scale_x_log10() +
+  geom_hline(yintercept = mean(reviews$stars), color = 'red', lty = 2) + 
+  xlab("# of reviews") +
+  ylab("Average Stars")
+```
+
