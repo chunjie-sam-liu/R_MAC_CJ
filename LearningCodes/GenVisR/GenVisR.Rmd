@@ -1,0 +1,25 @@
+---
+title: "R Notebook"
+author: 'C.J. Liu'
+date: "01/12/2017"
+output:
+  html_document:
+    depth: 3
+    highlight: tango
+    number_sections: yes
+    theme: united
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+    word_document:
+      toc: yes
+  word_document:
+    toc: yes
+---
+
+```{r load library}
+require(GenVisR)
+set.seed(1234)
+waterfall(brcaMAF, fileType = "MAF", mainRecurCutoff = 0.05)
+```
