@@ -1,0 +1,127 @@
+---
+title: "CleaningAndVisualizingGenomicData-ACaseStudyInTidyAnalysis"
+author: "C.J. Liu"
+date: "1/30/2017"
+output:
+  html_document:
+    depth: 3
+    highlight: tango
+    number_sections: yes
+    theme: united
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+    word_document:
+      toc: yes
+  word_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T)
+```
+
+This codes are provided by [David Robinson](http://varianceexplained.org/r/tidy-genomics/).
+
+So here, this is going to show an end-to-end analysis of a gene expression dataset according to tidy data principles. We'll use bioinformatics tools from Bioconductor when appropriate, but will focus on the suite of tidy tools [available workflows](https://www.bioconductor.org/help/workflows/).
+
+Tidying data with dplyr and tidyr.
+
+```{r libraries}
+suppressMessages(require(tidyverse))
+suppressMessages(require(stringr))
+```
+
+```{r}
+original_data <- read_tsv('Brauer2008_DataSet1.tds')
+```
+
+# CleaningAndVisualizingGenomicData-ACaseStudyInTidyAnalysis
+
+Each of those columns like G0.05, N0.3 and so on represents gene expression values for that sample, as measured by the microarray. The column titles show the condition: G0.05, for instance, means the limiting nutrient was glucose and the growth rate was .05. A higher value means the gene was more expressed in that sample, lower means the gene was less expressed. In total the yeast was grown with six limiting nutrients and six growth rates, which makes 36 samples, and therefore 36 columns, of gene expression data. [tidydata paper](http://vita.had.co.nz/papers/tidy-data.pdf)
+
+1. Each variable forms a column.
+2. Each observation forms a row.
+3. Each type of observational unit forms a table.
+
+## Clean data
+```{r clean data}
+original_data$NAME[1:3]
+
+# Separate Name into several sub names
+cleaned_data <- 
+  original_data %>%
+  separate(NAME, c('name', 'BP', 'MF', 'systematic_name', 'number'), sep = "\\|\\|")
+
+# Remove whitespace of BP
+cleaned_data <- cleaned_data %>%
+  mutate_each(funs(trimws), name:systematic_name)
+
+# Select variables we care about
+cleaned_data <- cleaned_data %>%
+  select(-number, -GID, -YORF, -GWEIGHT)
+
+# Column headers are values, not variable names
+# Gather takes multiple columns and collapses into kye-value pairs, guplicating all other columns as needed.
+# Use gather when you notice that you have columns that are not variables.
+
+cleaned_data <- cleaned_data %>%
+  gather(sample, expression, G0.05:U0.3)
+
+
+# Notice that the dataset no longer consists of one-row-per-gene
+# It's one-row-per-gene-per-sample
+# This has previously been called "melting" a dataset, or turning it into "long" format. 
+# That sample columns really contains two variables: nutrient and rate.
+# use separate
+
+cleaned_data <- cleaned_data %>% 
+  separate(sample, c("nutrient", "rate"), sep = 1, convert = T)
+# convert = T to tell it that it should notice the 0.05/0.1/etc value is a number and convert it
+
+
+#cleaned_data <- original_data %>%
+#  separate(NAME, c("name", "BP", "MF", "systematic_name", "number"), sep = "\\|\\|") %>%
+#  mutate_each(funs(trimws), name:systematic_name) %>%
+#  select(-number, -GID, -YORF, -GWEIGHT) %>%
+#  gather(sample, expression, G0.05:U0.3) %>%
+#  separate(sample, c("nutrient", "rate"), sep = 1, convert = TRUE)
+```
+
+## Visualization
+```{r Visualization}
+cleaned_data %>%
+  filter(name == "LEU1") %>%
+  ggplot(aes(rate, expression, color = nutrient)) +
+  geom_line()
+
+# What a story this single gene tells! The gene’s expression is far higher (more “turned on”) when the cell is being starved of leucine than in any other condition, because in that case the cell has to synthesize its own leucine. And as the amount of leucine in the environment (the growth rate) increases, the cell can focus less on leucine production, and the expression of those genes go down. We’ve just gotten one snapshot of our gene’s regulatory network, and how it responds to external stimulition.
+
+# We don’t have to choose one gene to visualize- LEU1 is just one gene in the leucine biosynthesis process. Recall that we have that information in the BP column, so we can filter for all genes in that process, and then facet to create sub-plots for each.
+
+cleaned_data %>%
+  filter(BP == "leucine biosynthesis") %>%
+  ggplot(aes(rate, expression, color = nutrient)) +
+  geom_line() +
+  facet_wrap( ~ name)
+
+# LEU1, LEU2, and LEU4 all show a similar pattern, where starvation of leucine causes higher gene expression. (Interestingly, LEU4 responds to glucose starvation as well. Any geneticists have some idea why?). LEU9 is a little more ambiguous but is still highest expressed under leucine starvation.
+
+cleaned_data %>%
+  filter(BP == "leucine biosynthesis") %>%
+  ggplot(aes(rate, expression, color = nutrient)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = F) +
+  facet_wrap(~ name + systematic_name, scales = "free_y")
+
+```
+
+
+
+
+
+
+
+
+
