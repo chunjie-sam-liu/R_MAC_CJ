@@ -1,0 +1,105 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# bare to quosure: quo
+```{r}
+bare_to_quo <- function(x, var){
+  x %>% select(!! var) %>% head(1)
+}
+bare_to_quo(mtcars, quo(cyl))
+quo(cyl) %>% class()
+quo(cyl)
+```
+# bare to quosure in function: enquo
+```{r}
+bare_to_quo_in_fun <- function(x, var){
+  var_enq <- enquo(var)
+  x %>% select(!! var_enq) %>% head(1)
+}
+bare_to_quo_in_fun(mtcars, cyl)
+```
+# quosure to name: quo_name
+```{r}
+bare_to_name <- function(x, nm){
+  nm_name <- quo_name(nm)
+  x %>% mutate(!! nm_name := 42) %>% head(1) %>% select(!! nm)
+}
+
+bare_to_name(mtcars, quo(this_is_42))
+quo(this_is_42)
+quo_name(quo(this_is_42)) 
+rlang::UQ(quo_name(quo(this_is_42)))
+
+
+```
+# quosure to text: quo_text
+```{r}
+quo_to_text <- function(x, var) {
+  var_enq <- enquo(var)
+  ggplot(x, aes_string(rlang::quo_text(var_enq))) + geom_density()
+}
+plt <- quo_to_text(mtcars, cyl)
+plt
+rlang::quo_text(quo(cyl))
+```
+
+# character to quosure: sym
+```{r}
+char_to_quo <- function(x, var) {
+  var_enq <- rlang::sym(var)
+  x %>% select(!!var_enq) %>% head(1)
+}
+char_to_quo(mtcars, "vs")
+rlang::UQ(rlang::sym("vs"))
+```
+# multiple bares to quosure: quos
+```{r}
+bare_to_quo_mult <- function(x, ...) {
+  grouping <- quos(...)
+  x %>% group_by(!!!grouping) %>% summarise(nr = n())
+}
+bare_to_quo_mult(mtcars, vs, cyl)
+
+```
+# multiple characters to quosure: syms
+```{r}
+bare_to_quo_mult_chars <- function(x, ...) {
+  grouping <- rlang::syms(...)
+  x %>% group_by(!!!grouping) %>% summarise(nr = n())
+}
+bare_to_quo_mult_chars(mtcars, list("vs", "cyl"))
+
+```
+# quoting full expressions
+```{r}
+filter_func <- function(x, filter_exp) {
+  filter_exp_enq <- enquo(filter_exp)
+  x %>% filter(!!filter_exp_enq)
+}
+filter_func(mtcars, hp == 93)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
