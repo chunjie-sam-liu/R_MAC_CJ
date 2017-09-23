@@ -89,15 +89,381 @@ fix_missing_999 <- missing_fixer(-999)
 
 fix_missing_99(c(-99, -999))
 fix_missing_999(c(-99, -999))
+
+# Storing function in a list
+summa <- function(x) {
+  funs <- c(mean, median, sd, mad, IQR)
+  lapply(funs, function(f) f(x, na.rm = T))
+}
+
+summa(1:10)
+
+
+```
+### Anonymouse functions
+```{r}
+lapply(mtcars, function(x) length(unique(x)))
+Filter(function(x) !is.numeric(x), mtcars)
+integrate(function(x) sin(x) ^ 2, 0, pi)
+
+formals(function(x = 4) g(x) + h(x))
+body(function(x = 4) g(x) + h(x))
+environment(function(x = 4) g(x) + h(x))
+
+
+(function(x) x + 3)(10)
+lapply(mtcars, function(x) mean(x) / sd(x))
+
+integrate(function(x) x ^ 2 - x, 0, 10)
+integrate(function(x) sin(x) + cos(x), -pi, pi)
 ```
 
+### closures
+```{r}
+power <- function(e) function(x) x ^ e
+power(2) %>% environment() %>% as.list()
+power(3)(2)
+
+
+new_counter <- function() {
+  i <- 0
+  function() {
+    i <<- i + 1
+    i
+  }
+}
+
+counter_one <- new_counter()
+counter_two <- new_counter()
+counter_three <- new_counter()
+
+counter_one()
+counter_two()
+counter_three()
+```
+### Lists of functions
+
+```{r}
+compute_mean <- list(
+  base = function(x) mean(x),
+  sum = function(x) sum(x) / length(x),
+  manual = function(x) {
+    total <- 0
+    n <- length(x)
+    for (i in seq_along(x)) {
+      total <- total + x[i] / n
+    }
+    total
+  }
+)
+compute_mean$base(runif(1e5)) 
+x <- runif(1e5)
+lapply(compute_mean, function(f) f(x))
+call_fun <- function(f, ...) f(...)
+lapply(compute_mean, call_fun, x)
+lapply(compute_mean, function(f) system.time(f(x)))
+
+
+simple_tag <- function(tag) {
+  force(tag)
+  function(...) {
+    paste0("<", tag, ">", paste0(...), "</", tag, ">")
+  }
+}
+tags <- c("p", "b", "i")
+html <- lapply(setNames(tags, tags), simple_tag)
+
+```
+
+
+
+
 ## Functionals
+### lapply
+```{r}
+lapply2 <- function(x, f, ...){
+  out <- vector("list", length(x))
+  for (i in seq_along(x)) {
+    out[[i]] <- f(x[[1]], ...)
+  }
+  out
+}
+
+
+l <- replicate(20, runif(sample(1:10, 1)), simplify = FALSE)
+
+
+```
+
+Looing patterns
+
+1. loop over the elements: for (x in xs)
+2. loop over the numeric indices: for (i in seq_along(xs))
+3. loop over the names: for (name in names(xs))
+```{r}
+xs <- 1:10
+res <- numeric(length(xs))
+for (i in seq_along(xs)) {
+  res[i] <- sqrt(xs[i])
+}
+str(res)
+
+lapply(xs, function(x) {})
+lapply(seq_along(xs), function(x) {})
+lapply(names(xs), function(nm) {})
+
+trims <- c(0, 0.1, 0.2, 0.5)
+x <- rcauchy(100)
+
+lapply(trims, function(trim) mean(x, trim = trim))
+
+```
+
+
+### Friends of lapply
+
+1. `sapply()` and `vapply()`, variants of `lapply()` that produce vectors, matrices, and arrays as output, instead of list.
+2. `Map()` and `mapply()` which iterate over multiple input data structure in parallel.
+3. `mcapply()` and `mcMap()`, parallel versions of `lapply()` and `Map()`.
+
+```{r}
+sapply(mtcars, is.numeric)
+vapply(mtcars, is.numeric, logical(1))
+sapply(list(), is.numeric)
+vapply(list(), is.numeric, logical(1))
+
+df <- data.frame(x = 1:10, y = letters[1:10])
+sapply(df, class)
+
+vapply(df, class, FUN.VALUE = character(1))
+
+df <- data.frame(x = 1:10, y = Sys.time() + 1:10)
+sapply(df, class)
+
+vapply(df, class, character(1))
+
+
+sapply2 <- function(x, f, ...) {
+  res <- lapply2(x, f, ...)
+  simplify2array(res)
+}
+
+vapply2 <- function(x, f, f.value, ...) {
+  out <- matrix(rep(f.value, length(x)), nrow = length(f.value))
+  for (i in seq_along(x)) {
+    res <- f(x[[i]], ...)
+    stopifnot(
+      length(res) == length(f.value),
+      typeof(res) == typeof(f.value)
+    )
+    out[, i] <- res
+  }
+  out
+}
+vapply2(df[2], class, f.value = character(2))
+```
+```{r}
+xs <- replicate(5, runif(10), simplify = F)
+ws <- replicate(5, rpois(10, 5) + 1, simplify = F)
+
+unlist(lapply(xs, mean))
+unlist(lapply(seq_along(xs), function(i) {
+  weighted.mean(xs[[i]], ws[[i]])
+}))
+
+
+unlist(Map(weighted.mean, xs, ws))
+stopifnot(length(xs) == length(ws))
+out <- vector("list", length(xs))
+for (i in seq_along(xs)) {
+  out[[i]] <- weighted.mean(xs[[i]], ws[[i]])
+} 
+out
+```
+```{r}
+rollmean <- function(x, n) {
+  out <- rep(NA, length(x))
+
+  offset <- trunc(n / 2)
+  for (i in (offset + 1):(length(x) - n + offset + 1)) {
+    out[i] <- mean(x[(i - offset):(i + offset - 1)])
+  }
+  out
+}
+x <- seq(1, 3, length = 1e2) + runif(1e2)
+plot(x)
+lines(rollmean(x, 5), col = "blue", lwd = 2)
+lines(rollmean(x, 10), col = "red", lwd = 2)
+
+```
+```{r}
+boot_df <- function(x) x[sample(nrow(x), rep = T), ]
+rsquared <- function(mod) summary(mod)$r.square
+boot_lm <- function(i) {
+  rsquared(lm(mpg ~ wt + disp, data = boot_df(mtcars)))
+}
+
+system.time(lapply(1:1000, boot_lm))
+parallel::mclapply(1:1000, boot_lm, mc.cores = 2)
+```
+```{r}
+integrate(sin, 0, pi)
+uniroot(sin, pi * c(1 / 2, 3 / 2))
+optimise(sin, c(0, 2 * pi), maximum = T)
+
+```
+```{r}
+# create a function factory
+# gives dataset, returns a function that computes the negative log likelihood for parameter lambda.
+# closure
+poisson_null <- function(x) {
+  n <- length(x)
+  sum_x <- sum(x)
+  function(lambda) {
+    n * lambda - sum_x * log(lambda)
+  }
+}
+
+x1 <- c(41, 30, 31, 38, 29, 24, 30, 29, 31, 38)
+x2 <- c(6, 4, 7, 3, 3, 7, 5, 2, 2, 7, 5, 4, 12, 6, 9)
+
+nll1 <- poisson_null(x1)
+nll2 <- poisson_null(x2)
+
+optimise(nll1, c(0, 100))$minimum
+optimise(nll2, c(0, 100))$minimum
+```
+```{r}
+arg_max <- function(v, f, ...) {
+  f(v) -> vf
+  v[max(vf) == vf]
+}
+arg_max(-10:5, function(x) x ^ 2)
+```
+
+#### A family of functions
+```{r}
+add <- function(x, y) {
+  stopifnot(
+    length(x) == 1,
+    length(y) == 1,
+    is.numeric(x),
+    is.numeric(y)
+  )
+  x + y
+}
+
+rm_na <- function(x, y, identity) {
+  if (is.na(x) && is.na(y)) {
+    identity
+  } else if (is.na(x)){
+    y
+  } else {
+    x
+  }
+}
+
+add <- function(x, y, na.rm = F) {
+  if (na.rm && (is.na(x) || is.na(y))) rm_na(x, y, 0) else x + y
+}
+
+r_add <- function(xs, na.rm = T) {
+  Reduce(function(x, y) add(x, y, na.rm = na.rm), xs, init = 0)
+}
+
+r_add(c(1,4,10))
+r_add(NA, na.rm = T)
+r_add(numeric())
+
+
+v_add1 <- function(x, y, na.rm = T) {
+  stopifnot(
+    length(x) == length(y),
+    is.numeric(x), 
+    is.numeric(y)
+  )
+  if (length(x) == 0) return(numeric())
+  simplify2array(
+    Map(function(x, y) add(x, y, na.rm = na.rm), x, y)
+  )
+}
+
+v_add2 <- function(x, y, na.rm = T) {
+  stopifnot(
+    length(x) == length(y),
+    is.numeric(x), 
+    is.numeric(y)
+  )
+  if (length(x) == 0) return(numeric())
+  
+  vapply(
+    X = seq_along(x),
+    FUN = function(i) add(x[[i]], y[[i]], na.rm = na.rm),
+    FUN.VALUE = numeric(1)
+  )
+}
+v_add2(c(1,4,10), c(1,4,10))
+```
+
 
 ## Function operators
 
+```{r}
+download_file <- function(url, ...) {
+  download.file(url, basename(url), ...)
+}
+lapply(urls, download_file)
 
+i <- 1
+for (url in urls) {
+  i <- i + 1
+  if (i %% 10) cat(".")
+  Sys.delay(1)
+  download_file(url)
+}
 
+# use lapply like
+lapply(urls, dot_every(10, delay_by(1, download_file)))
 
+delay_by <- function(delay, f) {
+  function(...) {
+    Sys.sleep(delay)
+    f(...)
+  }
+}
+
+dot_every <- function(n, f) {
+  i <- 1
+  function(...) {
+    if (i %% n == 0) cat(".")
+    i <<- i + 1
+    f(...)
+  }
+}
+lapply(1:100, runif)
+lapply(1:100, dot_every(10, runif))
+
+download <- dot_every(10, delay_by(1, download.file))
+
+```
+
+```{r}
+compact <- function(x) Filter(Negate(is.null), x)
+```
+
+```{r}
+z <- quote(y <- x * 10)
+str(z)
+pryr::ast(y <- x * 10)
+```
+
+```{r}
+subset2 <- function(x, condition) {
+  contrib_call <- substitute(contition)
+  r <- eval(contrib_call, x)
+  x[r,]
+}
+```
 
 
 
