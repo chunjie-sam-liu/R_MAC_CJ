@@ -410,3 +410,9 @@ hsa04110 <- pathview(gene.data  = geneList,
 
 
 
+
+
+
+# Fgsea  ------------------------------------------------------------------
+
+# is used for preranked gene set enrichment analysis
