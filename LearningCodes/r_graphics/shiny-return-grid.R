@@ -17,7 +17,7 @@ email <- function(.txt) {
   grid::grid.text(
     label = .txt, hjust = 0, vjust = 1,
     x = 0, y = 1, 
-    gp = grid::gpar(col = "blue", fontsize = 18)
+    gp = grid::gpar(col = "#008176", fontsize = 18)
   )
 }
 
