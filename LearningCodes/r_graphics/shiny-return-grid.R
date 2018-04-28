@@ -12,9 +12,8 @@ ui <- fluidPage(
     shiny::column(width = 12, offset = 0,
       shiny::tags$ul(
         shiny::tags$li("hello"),
-        shiny::tags$li("world")
-
-
+        shiny::tags$li("world"),
+        shiny::tags$a("href" = "https://github.com", shiny::icon(name = "github", class = "fa-2x"))
       )
     )
   )
