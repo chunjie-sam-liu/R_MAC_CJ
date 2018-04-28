@@ -7,8 +7,19 @@ ui <- fluidPage(
       width = 3, offset = 0,
       shiny::plotOutput(outputId = "email", height = "20px", width = "200px")
       )
+  ),
+  shiny::fluidRow(
+    shiny::column(width = 12, offset = 0,
+      shiny::tags$ul(
+        shiny::tags$li("hello"),
+        shiny::tags$li("world")
+
+
+      )
+    )
   )
 )
+
 
 email <- function(.txt) {
   grid::grid.newpage()
