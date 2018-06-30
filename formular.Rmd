@@ -1,0 +1,12 @@
+---
+title: "formular"
+author: "C.J. Liu"
+date: "6/30/2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+
+$$IC_p = \alpha + \frac{1}{\beta} log((\frac{100}{100-p})^{\frac{1}{f}}-1)$$
