@@ -35,3 +35,5 @@ vignettes/*.pdf
 
 # Rprofile and Renvironment
 .Rprofile
+
+.vscode
