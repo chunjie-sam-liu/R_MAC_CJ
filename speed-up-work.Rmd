@@ -1,0 +1,168 @@
+---
+title: "Speed up work"
+output: html_notebook
+---
+
+```{r}
+base::date()
+
+R.version.string
+parallel::detectCores()
+packageVersion('parallel')
+ncore <- parallel::detectCores()
+cl <- parallel::makeCluster(ncore)
+print(cl)
+parallel::stopCluster(cl)
+
+set.seed(2223)
+
+mk_example <- function(nkey, nrep, ngroup = 20) {
+  keys <- paste0("key_", seq_len(nkey))
+  key_group <- sample(as.character(seq_len(ngroup)),length(keys), replace = TRUE)
+  names(key_group) <- keys
+  key_table <- data.frame(key = rep(keys, nrep), stringsAsFactors = FALSE)
+  key_table$data <- runif(nrow(key_table))
+  instance_table <- data.frame(key = rep(keys, nrep), stringsAsFactors = FALSE)
+  instance_table$id <- seq_len(nrow(instance_table))
+  instance_table$info <- runif(nrow(instance_table))
+  key_table$key_group <- key_group[key_table$key]
+  instance_table$key_group <- key_group[instance_table$key]
+  list(key_table = key_table, instance_table = instance_table)
+}
+
+dlist <- mk_example(10, 10)
+data <- dlist$instance_table
+annotation <- dlist$key_table
+```
+
+## data.table
+```{r}
+library(data.table)
+packageVersion("data.table")
+
+data_table_f <- function(data, annotation) {
+  data <- data.table::as.data.table(data)
+  annotation <- data.table::as.data.table(annotation)
+  joined <- merge(data, annotation, by = 'key', all = FALSE, allow.cartesian = TRUE)
+  joined <- joined[joined$data <= joined$info, ]
+  data.table::setorderv(joined, cols = "data")
+  joined <- joined[, .SD[.N], id]
+  data.table::setorderv(joined, cols = 'id')
+}
+
+resdt <- data_table_f(data, annotation)
+head(resdt)
+nrow(resdt)
+
+
+R.version.string
+parallel::detectCores()
+packageVersion('parallel')
+ncore <- parallel::detectCores()
+cl <- parallel::makeCluster(ncore)
+print(cl)
+# parallel::stopCluster(cl)
+
+parallel::clusterEvalQ(cl, library('data.table'))
+parallel::clusterExport(cl, 'data_table_f')
+
+df_f <- function(table_list) {
+  data <- table_list$data
+  annotation <- table_list$annotation
+  data_table_f(data, annotation)
+}
+
+
+data_table_parallel_f <- function(data, annotation) {
+  respdt <- wrapr::execute_parallel(
+    tables = list(data = data, annotation = annotation),
+    f = df_f,
+    partition_column = "key_group",
+    cl = cl)  %.>% 
+    data.table::rbindlist(.)
+  data.table::setorderv(respdt, cols = "id")
+  respdt
+}
+library(rqdatatable)
+
+respdt <- data_table_parallel_f(data, annotation)
+nrow(respdt)
+
+
+```
+
+## dplyr
+```{r}
+suppressMessages(library(dplyr))
+
+dplyr_pipeline <- function(data, annotation) {
+  res <- 
+    data %>% 
+    inner_join(annotation, by = "key") %>% 
+    filter(data <= info) %>% 
+    group_by(id) %>% 
+    arrange(-data) %>% 
+    mutate(rownum = row_number()) %>% 
+    ungroup() %>% 
+    filter(rownum == 1) %>% 
+    arrange(id)
+  res
+    
+}
+
+resd <- dplyr_pipeline(data, annotation)
+nrow(resd)
+
+parallel::stopCluster(cl)
+parallel::detectCores()
+packageVersion('parallel')
+ncore <- parallel::detectCores()
+cl <- parallel::makeCluster(ncore)
+
+print(cl)
+
+parallel::clusterEvalQ(cl, library('dplyr'))
+parallel::clusterExport(cl, "dplyr_pipeline")
+dplyr_f <- function(tables_list) {
+  data <- tables_list$data
+  annotation <- tables_list$annotation
+  dplyr_pipeline(data, annotation)
+}
+dplyr_parallel_f <- function(data, annotation) {
+  respdt <- wrapr::execute_parallel(
+    tables = list(data = data, annotation = annotation),
+    f = dplyr_f,
+    partition_column = "key_group",
+    cl = cl
+  ) %>% 
+    dplyr::bind_rows() %>% 
+    arrange(id)
+}
+respdplyr <- dplyr_parallel_f(data, annotation)
+
+head(respdplyr)
+```
+
+## Benchmark
+```{r}
+dist <- mk_example(300, 300)
+data <- dist$instance_table
+annotation <- dist$key_table
+library(microbenchmark)
+library("ggplot2")
+library("WVPlots")
+
+
+timings <- microbenchmark(
+  data_table_parallel = 
+    nrow(data_table_parallel_f(data, annotation)),
+  data_table = nrow(data_table_f(data, annotation)),
+  rqdatatable_parallel = 
+    nrow(ex_data_table_parallel(optree, "key_group", cl)),
+  rqdatatable = nrow(ex_data_table(optree)),
+  dplyr_parallel = 
+    nrow(dplyr_parallel_f(data, annotation)),
+  dplyr = nrow(dplyr_pipeline(data, annotation)),
+  times = 10L)
+```
+

@@ -1,0 +1,29 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(lubridate)
+ymd("20110604")
+
+mdy("06-04-2011")
+
+dmy("04-06-2011")
+```
+
+```{r}
+arrive <- ymd_hms("2011-06-04 12:00:00", tz = "Pacific/Auckland")
+arrive
+
+leave <- ymd_hms("2011-08-10 14:00:00", tz = "Pacific/Auckland")
+leave
+
+second(arrive)
+wday(arrive, label = TRUE)
+
+auckland <- interval(arrive, leave)
+
+minute(2)
+```
+
