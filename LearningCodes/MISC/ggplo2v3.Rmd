@@ -4,7 +4,57 @@ output: html_notebook
 ---
 
 ```{r}
+library(ggplot2)
 utils::packageVersion(pkg = "ggplot2")
 ```
 
+## tidy evaluation
+```{r}
+x_var <- quo(wt)
+y_var <- quo(mpg)
+group_var <- quo(cyl)
+
+ggplot(mtcars, aes(!!x_var, !!y_var)) + 
+  geom_point() +
+  facet_wrap(vars(!!group_var))
+
+```
+
+
+## Tag
+
+```{r}
+ggplot(mtcars) +
+  geom_point(aes(disp, mpg)) +
+  labs(tag = "A", title = "Title of this plot")
+```
+
+## Scales and guides
+```{r}
+dsamp <- diamonds[sample(nrow(diamonds), 1000),]
+
+d <- ggplot(dsamp, aes(carat, price)) + geom_point(aes(color = clarity))
+d + scale_color_viridis_d()
+
+v <- ggplot(faithfuld) + geom_tile(aes(waiting, eruptions, fill = density))
+v + scale_fill_continuous()
+
+
+p <- ggplot(mtcars, aes(wt, mpg)) 
+p + geom_point(aes(color = cyl)) +
+  scale_color_gradient(
+    low = "white",
+    high = "red",
+    guide = guide_colorbar(
+      frame.colour = "white",
+      ticks.colour = "black"
+    )
+  )
+
+
+ggplot(iris, aes(x = Sepal.Length, fill = Species)) +
+  geom_density(alpha = 0.7) +
+  scale_color_brewer(type = "qual", aesthetics = "fill")
+
+```
 
