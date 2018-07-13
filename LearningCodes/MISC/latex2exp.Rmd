@@ -1,0 +1,31 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+latex2exp::latex2exp_examples()
+```
+
+
+```{r}
+library(latex2exp)
+TeX("$\\alpha$")
+TeX("The ratio of 1 and 2 is $\\frac{1}{2}$")
+
+a <- 1:100
+plot(a, a^2, xlab = b, ylab = b)
+```
+
+```{r}
+human_read <- function(.x){
+  if (.x > 0.0001) {
+    toString(.x)
+  } else {
+    strsplit(toString(.x), split = "e", fixed = TRUE)[[1]] -> .xx
+    TeX(glue::glue("$<<.xx[1]>> \\times 10^{<<.xx[2]>>}$", .open = "<<", .close = ">>"))
+  }
+}
+
+```
+
