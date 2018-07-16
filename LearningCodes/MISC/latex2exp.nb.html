@@ -1708,29 +1708,17 @@ $(document).ready(function () {
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShsYXRleDJleHApXG5UZVgoXCIkXFxcXGFscGhhJFwiKVxuVGVYKFwiVGhlIHJhdGlvIG9mIDEgYW5kIDIgaXMgJFxcXFxmcmFjezF9ezJ9JFwiKVxuXG5hIDwtIDE6MTAwXG5wbG90KGEsIGFeMiwgeGxhYiA9IGIsIHlsYWIgPSBiKVxuYGBgIn0= -->
-<pre class="r"><code>library(latex2exp)
-TeX(&quot;$\\alpha$&quot;)
-TeX(&quot;The ratio of 1 and 2 is $\\frac{1}{2}$&quot;)
-
-a &lt;- 1:100
-plot(a, a^2, xlab = b, ylab = b)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdChhLCBhXjIsIHhsYWIgPSBiLCB5bGFiID0gYilcblxuYGBgIn0= -->
+<pre class="r"><code>plot(a, a^2, xlab = b, ylab = b)
+</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gcGxvdC5kZWZhdWx0KGEsIGFeMiwgeGxhYiA9IGIsIHlsYWIgPSBiKSA6IG9iamVjdCAnYicgbm90IGZvdW5kXG4ifQ== -->
+<pre><code>Error in plot.default(a, a^2, xlab = b, ylab = b) : object 'b' not found</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaHVtYW5fcmVhZCA8LSBmdW5jdGlvbigueCl7XG4gIGlmICgueCA+IDAuMDAwMSkge1xuICAgIHRvU3RyaW5nKC54KVxuICB9IGVsc2Uge1xuICAgIHN0cnNwbGl0KHRvU3RyaW5nKC54KSwgc3BsaXQgPSBcImVcIiwgZml4ZWQgPSBUUlVFKVtbMV1dIC0+IC54eFxuICAgIFRlWChnbHVlOjpnbHVlKFwiJDw8Lnh4WzFdPj4gXFxcXHRpbWVzIDEwXns8PC54eFsyXT4+fSRcIiwgLm9wZW4gPSBcIjw8XCIsIC5jbG9zZSA9IFwiPj5cIikpXG4gIH1cbn1cblxuYGBgIn0= -->
-<pre class="r"><code>human_read &lt;- function(.x){
-  if (.x &gt; 0.0001) {
-    toString(.x)
-  } else {
-    strsplit(toString(.x), split = &quot;e&quot;, fixed = TRUE)[[1]] -&gt; .xx
-    TeX(glue::glue(&quot;$&lt;&lt;.xx[1]&gt;&gt; \\times 10^{&lt;&lt;.xx[2]&gt;&gt;}$&quot;, .open = &quot;&lt;&lt;&quot;, .close = &quot;&gt;&gt;&quot;))
-  }
-}
-</code></pre>
-<!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
