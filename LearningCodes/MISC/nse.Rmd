@@ -1,0 +1,129 @@
+---
+title: "Non standard evaluation"
+output: html_notebook
+---
+
+```{r}
+x <- seq(0, 2 * pi, length = 100)
+sinx <- sin(x)
+plot(x, sinx, type = "l")
+
+```
+
+
+# substitute
+The typical use of substitute is to create informative labels for data sets and plots.
+```{r}
+require(graphics)
+s.e <- substitute(expression(a + b), list(a = 1))
+s.s <- substitute(a + b, list(a = 1))
+c(mode(s.e), typeof(s.e))
+c(mode(s.s), typeof(s.s))
+
+(e.s.e <- eval(s.e))
+c(mode(e.s.e), typeof(e.s.e))
+
+myplot <- function(x, y) plot(x, y, xlab = deparse(substitute(x)),ylab = deparse(substitute(y)))
+f1 <- function(x, y = x) {x <- x + 1; y}
+s1 <- function(x, y = substitute(x)) {x <- x + 1; y}
+s2 <- function(x, y) { if (missing(y)) y <- substitute(x); x <- x + 1; y}
+
+a <- 10
+f1(a)
+s1(a)
+s2(a)
+typeof(s2(a))
+```
+
+## Capture expressions
+```{r}
+# substitute looks at a function argument and instead of seeing the value, it sees the code used to compute the value.
+f <- function(x) {
+  substitute(x)
+}
+f(1:10)
+
+x <- 10
+
+f(x)
+
+y <- 13
+typeof(f(x + y ^ 2))
+
+g <- function(x) deparse(substitute(x))
+g(1:10)
+
+g(x + y ^ 2)
+
+x <- 1:4
+y <- letters[1:4]
+names(data.frame(x, y))
+
+
+g(a + b + c + d + e + f + g + h + i + j + k + l + m + n + o + p + q + r + s + t + u + v + w + x + y + z)
+
+f <- function(x) substitute(x)
+g <- function(x) deparse(f(x))
+g(1:10)
+g(x)
+g(x + y ^ 2 / z + exp(a * sin(b)))
+```
+```{r}
+sample_df <- data.frame(a = 1:5, b = 5:1, c = c(5, 3, 1, 4, 1))
+subset(sample_df, a >= 4)
+sample_df[sample_df$a >= 4, ]
+
+subset(sample_df, b == c)
+
+mode(quote(1:10))
+mode(substitute(1:10))
+
+eval(quote(x))
+eval(quote(y))
+
+eval(substitute(x))
+
+(quote(2 + 2))
+(eval(quote(2 + 2)))
+(quote(quote(2 + 2)))
+(eval(quote(quote(2 + 2))))
+(eval(eval(quote(quote(2 + 2)))))
+
+x <- 10
+eval(quote(x))
+
+e <- new.env()
+e$x <- 20
+eval(quote(x), e)
+
+eval(quote(x), list(x = 30))
+eval(quote(x), data.frame(x = 40))
+eval(quote(a >= 4), sample_df)
+
+
+subset2 <- function(x, condition) {
+  condition_call <- substitute(condition)
+  r <- eval(condition_call, x)
+  x[r, ]
+}
+subset2(sample_df, a >= 4)
+
+eval(quote(eval(quote(eval(quote(2 + 2))))))
+eval(eval(quote(eval(quote(eval(quote(2 + 2)))))))
+quote(eval(quote(2 + 2)))
+quote(eval(quote(eval(quote(eval(quote(2 + 2)))))))
+
+
+sample_df2 <- data.frame(x = 1:10)
+subset2(sample_df2, x > 8)
+
+subset2 <- function(x, condition) {
+  condition_call <- substitute(condition)
+  r <- eval(condition_call, x)
+  # dplyr::filter(x, r)
+  if (ncol(x) == 1) x[r, 1, drop = FALSE] else x[r, ]
+}
+subset2(sample_df2, x > 8)
+subset(sample_df2, x > 8)
+```
+
