@@ -1,0 +1,65 @@
+---
+title: "Kolmogorov-smirnov Test"
+output: html_notebook
+---
+http://www.physics.csbsju.edu/stats/KS-test.html
+
+> The Kolmogorov-Smirnov test (KS-test) tries to determine if two datasets differ significantly.
+
+> The KS-test has the advantage of making no assumption about the distribution of data. (Technically speaking it is non-parametric and distribution free.)
+
+> Note however, that this generality comes at some cost: other tests (for example Student's t-test) may be more sensitive if the data meet the requirements of the test.
+
+
+```{r}
+library(magrittr)
+cA <- c(0.22, -0.87, -2.39, -1.79, 0.37, -1.54, 1.28, -0.31, -0.74, 1.72, 0.38, -0.17, -0.62, -1.10, 0.30, 0.15, 2.30, 0.19, -0.50, -0.09)
+tA <- c(-5.13, -2.19, -2.43, -3.83, 0.50, -3.25, 4.32, 1.63, 5.18, -0.43, 7.11, 4.87, -3.10, -5.81, 3.76, 6.31, 2.58, 0.07, 5.76, 3.50)
+t.test(tA, cA) %>% broom::tidy()
+glue::glue("treatment mean: {mean(tA)} and sd: {sd(tA)}")
+glue::glue("control mean: {mean(cA)} and sd: {sd(cA)}")
+
+
+cB <- c(1.26, 0.34, 0.70, 1.75, 50.57, 1.55, 0.08, 0.42, 0.50, 3.20, 0.15, 0.49, 0.95, 0.24, 1.37, 0.17, 6.98, 0.10, 0.94, 0.38)
+tB <- c(2.37, 2.16, 14.82, 1.73, 41.04, 0.23, 1.32, 2.91, 39.41, 0.11, 27.44, 4.51, 0.51, 4.50, 0.18, 14.68, 4.66, 1.30, 2.06, 1.19)
+t.test(tB, cB)
+glue::glue("treatment mean: {mean(tB)} and sd: {sd(tB)}")
+glue::glue("control mean: {mean(cB)} and sd: {sd(cB)}")
+ks.test(tB, cB) %>% broom::tidy()
+
+```
+```{r}
+words1 = rnorm(100); words2 = rt(100, df=3)
+plot(ecdf(words1))
+## Have a look at the densities
+plot(density(words1));plot(density(words2))
+
+## Perform the test
+shapiro.test(words1); shapiro.test(words2)
+
+## Plot using a qqplot
+qqnorm(words1);qqline(words1, col = 2)
+qqnorm(words2);qqline(words2, col = 2)
+```
+
+
+```{r}
+cBs <- cB %>% sort()
+ecdf(cB) -> Fn
+Fn(1)
+sum(cB < 1) / length(cB)
+plot(Fn, verticals = TRUE, do.points = FALSE)
+plot(density(cB))
+plot(density(tB))
+shapiro.test(cB)
+median(log(cB))
+```
+
+```{r}
+plot(ecdf(log(cB)), verticals = TRUE, do.points = FALSE)
+par(new = T)
+plot(ecdf(log(tB)), verticals = TRUE, do.points = FALSE)
+
+ks.test(cB, tB)
+```
+
