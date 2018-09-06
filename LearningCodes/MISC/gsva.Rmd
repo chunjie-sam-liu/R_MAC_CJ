@@ -1,0 +1,64 @@
+---
+title: "GSVA Notebook"
+output: html_notebook
+---
+
+> https://bioconductor.org/packages/release/bioc/manuals/GSVA/man/GSVA.pdf
+
+```{r}
+library(GSVA)
+geneSets <- list(set1=as.character(1:4), set2=as.character(4:10))
+unlist(geneSets)
+computeGeneSetsOverlap(geneSets, unique(unlist(geneSets)))
+
+filterGeneSets(geneSets, min.sz = 5)
+```
+```{r}
+library(limma)
+
+p <- 10
+n <- 30
+nGrp1 <- 15
+nGrp2 <- n - nGrp1
+
+geneSets <- list(
+  set1 = paste('g', 1:3, sep = ""),
+  set2 = paste('g', 4:6, sep = ""),
+  set3 = paste('g', 7:10, sep = "")
+)
+
+
+y <- matrix(rnorm(n * p), nrow = p, ncol = n, dimnames = list(paste('g', 1:p, sep = ""), paste('s', 1:n, sep = "")))
+
+# nGrp1+1 to n express at higher levels
+y[geneSets$set1, (nGrp1 + 1):n] <- y[geneSets$set1, (nGrp1 + 1):n] + 2
+
+# build design matrix
+design <- cbind(sampleGroup1 = 1, sampleGroup2vs1 = c(rep(0, nGrp1), rep(1, nGrp2)))
+
+# fit linear model
+fit <- lmFit(y, design)
+
+# estimate moderated t-statistics
+
+fit <- eBayes(fit)
+
+# genes in set1 are differentially expressed 
+
+topTable(fit, coef = 'sampleGroup2vs1')
+
+# estimate GSVA enrichment scores for the three sets
+
+gsva_es <- gsva(y, geneSets, mx.diff = 1)
+
+# fit the same linear model now to the GSVA enrichment scores
+
+fit <- lmFit(gsva_es, design = design)
+fit <- eBayes(fit)
+
+topTable(fit, coef = "sampleGroup2vs1")
+
+```
+
+
+

@@ -1,0 +1,14 @@
+---
+title: "Limma Notebook"
+output: html_notebook
+---
+
+> stucked
+
+limma RNA-esq
+```{r}
+library(edgeR)
+dge <- DGEList(counts = counts)
+
+```
+
