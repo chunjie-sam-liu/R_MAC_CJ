@@ -96,9 +96,31 @@ if (nrow(expr) < 2) stop("Less than two genes in the input expression data matri
 # map gene indentifiers of the gene sets to the features in the matrix
 mapped.gset.idx.list <- gset.idx.list
 
-tmp <- lapply(geneIds(mapped.gset.idx.list), function(x, y) na.omit(match(x, y)), rownames(expr))
+mapped.gset.idx.list <- lapply(
+  gset.idx.list,
+  function(x, y) na.omit(match(x, y)),
+  rownames(expr)
+)
+min.sz <- 1
+max.sz <- Inf
 
 
+mapped.gset.idx.list <- filterGeneSets(
+  mapped.gset.idx.list,
+  min.sz = max(1, min.sz),
+  max.sz = max.sz
+  )
+
+if (!missing(kcdf)) {
+    if (kcdf == "Gaussian") {
+      rnaseq <- FALSE
+      kernel <- TRUE
+    } else if (kcdf == "Poisson") {
+      rnaseq <- TRUE
+      kernel <- TRUE
+    } else
+      kernel <- FALSE
+}
 
 
 
