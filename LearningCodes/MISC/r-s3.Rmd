@@ -1,0 +1,89 @@
+---
+title: "R s3 Notebook"
+output: html_notebook
+---
+
+The source from **http://blog.fens.me/r-class-s3/**
+
+```{r}
+library(pryr)
+# create s3 obeject
+
+# create by attr
+x <- 1
+attr(x, 'class') <- 'foo'
+
+class(x)
+
+otype(x)
+
+# create by structure 
+y <- structure(2, class = 'foo')
+y
+
+class(y)
+
+otype(y)
+
+# create object with multiple class
+attr(x, 'class') <- c('foo', 'bar')
+x
+
+
+# generic function and call it
+
+
+# UseMethod to define a generic function by input class attr.
+# UseMethod to define teacher generic function
+# teacher.xxx to define teacher object to do
+# teacher.default as default do
+
+teacher <- function(x, ...) UseMethod('teacher')
+
+ftype(teacher)
+
+teacher.lecture <- function(x) print('lecture')
+teacher.assignmen <- function(x) print('assignment')
+teacher.correcting <- function(x) print('correcting')
+teacher.default <- function(x) print('you are not teacher')
+
+# call teacher by input the class attr to choose the function
+a <- structure('teacher', class = 'lecture')
+otype(a)
+a
+teacher(a)
+
+teacher.lecture(x)
+
+teacher()
+
+methods(teacher)
+methods(generic.function = predict)
+
+methods(class = lm)
+getAnywhere(teacher.lecture)
+
+getS3method('teacher', 'lecture')
+
+# inherit S3 object
+
+node <- function(x) UseMethod('node', x)
+node.default <- function(x) 'Default node'
+
+node.father <- function(x) c('father')
+node.mother <- function(x) c('mother')
+node.son <- function(x) {print('I am son'); print('this is my '); NextMethod(); print('this is my '); NextMethod()}
+
+n1 <- structure(1, class = c('father'))
+node(n1)
+
+n2 <- structure(2, class = c('son', 'mother', 'father'))
+node(n2)
+
+
+
+```
+
+
+
+

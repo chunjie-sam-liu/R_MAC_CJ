@@ -60,5 +60,48 @@ topTable(fit, coef = "sampleGroup2vs1")
 
 ```
 
+```{r}
+
+p <- 10
+n <- 30
+nGrp1 <- 15
+nGrp2 <- n - nGrp1
+
+geneSets <- list(
+  set1 = paste('g', 1:3, sep = ""),
+  set2 = paste('g', 4:6, sep = ""),
+  set3 = paste('g', 7:10, sep = "")
+)
+
+
+y <- matrix(rnorm(n * p), nrow = p, ncol = n, dimnames = list(paste('g', 1:p, sep = ""), paste('s', 1:n, sep = "")))
+
+gsva_es <- gsva(y, geneSets, mx.diff = 1)
+
+expr <- y
+gset.idx.list <- geneSets
+mx.diff = 1
+method <- 'gsva'
+kcdf <- 'Gaussian'
+
+sdGenes <- apply(expr, 1, sd)
+if (any(sdGenes == 0) || any(is.na(sdGenes))) { 
+  warning(sum(sdGenes == 0 | is.na(sdGenes)), " genes with constant expression values throughout the samples.")
+  if (method != 'ssgsea') {
+    warning("Since argument method != \"ssgsea\", genes with constant expression values are discarded.")
+    expr <- expr[sdGenes > 0 & !is.na(sdGenes),, drop = FALSE]
+  }
+}
+if (nrow(expr) < 2) stop("Less than two genes in the input expression data matrix\n")
+# map gene indentifiers of the gene sets to the features in the matrix
+mapped.gset.idx.list <- gset.idx.list
+
+tmp <- lapply(geneIds(mapped.gset.idx.list), function(x, y) na.omit(match(x, y)), rownames(expr))
+
+
+
+
+
+```
 
 
