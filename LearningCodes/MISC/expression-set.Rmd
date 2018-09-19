@@ -1,0 +1,58 @@
+---
+title: "ExpressionSet"
+output: html_notebook
+---
+```{r}
+library(Biobase)
+library(ALL)
+library(hgu95av2.db)
+library(magrittr)
+```
+
+```{r}
+data("ALL")
+
+ALL
+```
+
+```{r}
+ALL %>% experimentData()
+```
+
+```{r}
+exprs(ALL)[1:4,1:4]
+```
+
+```{r}
+sampleNames(ALL)
+```
+
+```{r}
+featureNames(ALL) %>% head()
+```
+```{r}
+head(pData(ALL))
+```
+
+```{r}
+pData(ALL)$sex %>% head()
+```
+
+```{r}
+ALL[1:5,1:5]
+```
+
+```{r}
+featureData(ALL)
+```
+
+```{r}
+ids <- featureNames(ALL)[1:5]
+
+as.list(hgu95av2ENTREZID[ids])
+```
+```{r}
+pD <- phenoData(ALL)
+varLabels(pD)
+```
+
