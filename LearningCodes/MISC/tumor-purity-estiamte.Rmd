@@ -1,0 +1,20 @@
+---
+title: "Estimate tumor purity by the estimate package"
+output: html_notebook
+---
+
+```{r}
+library(estimate)
+OvarianCancerExpr <- system.file('extdata', 'sample_input.txt', package = 'estimate')
+filterCommonGenes(input.f = OvarianCancerExpr, output.f = "OV_10412.genes.gct", id = 'GeneSymbol')
+estimateScore('OV_10412.genes.gct', 'OV_estimate_score.gct', platform = 'affymetrix') -> d
+
+plotPurity(scores = 'OV_estimate_score.gct', samples = 's516', platform = 'affymetrix')
+```
+```{r}
+ptm <- proc.time()
+filterCommonGenes(input.f = OvarianCancerExpr, output.f = 'OV_10412.genes.gct', id = 'GeneSymbol')
+proc.time() - ptm
+```
+
+

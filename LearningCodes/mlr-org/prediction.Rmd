@@ -1,0 +1,38 @@
+---
+title: "mlr-org prediction"
+output: html_notebook
+---
+
+Using the regression based on [mlr](https://mlr-org.github.io/mlr/articles/tutorial/predict.html)
+
+```{r}
+library(mlr)
+
+listLearners('regr', check.packages = F, properties = 'se')[c('class', 'name')]
+```
+
+```{r}
+n = getTaskSize(bh.task)
+train.set = seq(1, n, by = 2)
+test.set = seq(2, n, by = 2)
+
+lrn = makeLearner(cl = 'regr.gbm', n.trees = 100)
+mod = train(learner = lrn, task = bh.task, subset = train.set)
+
+task.pred = predict(object = mod, task = bh.task, subset = test.set)
+task.pred
+```
+```{r}
+listLearnerProperties(type = 'regr')
+
+listLearners(obj = 'regr', properties = 'weights')
+```
+```{r}
+lrn.lm <- makeLearner('regr.lm', predict.type = 'se')
+mod.lm <- train(learner = lrn.lm, task = bh.task, subset = train.set)
+
+task.pred.lm <- predict(mod.lm, task = bh.task, subset = test.set)
+
+task.pred.lm
+```
+
