@@ -18,3 +18,48 @@ proc.time() - ptm
 ```
 
 
+## use mixtools
+
+```{r}
+library(mixtools)
+data("faithful")
+attach(faithful)
+hist(waiting, main = 'Time between Old Faithful eruptions', xlab = 'Minutes', ylab = '', cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.4)
+
+mixmdl <- normalmixEM(waiting)
+plot(mixmdl, which = 2)
+
+```
+```{r}
+library(data.table)
+library(ggplot2)
+
+head(faithful)
+
+ggplot(faithful, aes(waiting)) + geom_density()
+
+
+
+```
+
+```{r}
+h <- density(faithful$waiting)$x[which.max(density(faithful$waiting)$y)]
+
+ggplot(faithful, aes(waiting)) + geom_density() + geom_vline(xintercept = h)
+```
+
+```{r}
+i <- density(faithful$waiting)$x[which.max(density(faithful$waiting)$y[density(faithful$waiting)$x < 65])]
+ggplot(faithful, aes(waiting)) + geom_density() + geom_vline(xintercept = i)
+
+```
+```{r}
+densityfaithfulY <- density(faithful$waiting)$y
+densityfaithfulX <- density(faithful$waiting)$x
+mindensityY <- min(densityfaithfulY[densityfaithfulX < h & densityfaithfulX > i])
+mindensityY
+j <- densityfaithfulX[which(densityfaithfulY == mindensityY)]
+
+ggplot(faithful, aes(waiting)) + geom_density() + geom_vline(xintercept = i) + geom_vline(xintercept = j) + geom_vline(xintercept = h)
+```
+
