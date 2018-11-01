@@ -62,4 +62,16 @@ j <- densityfaithfulX[which(densityfaithfulY == mindensityY)]
 
 ggplot(faithful, aes(waiting)) + geom_density() + geom_vline(xintercept = i) + geom_vline(xintercept = j) + geom_vline(xintercept = h)
 ```
+```{r}
+d <- density(faithful$waiting)
+k <- d$x[which.min(abs(diff(d$y))) + 1]
+optimise(approxfun(d$x, d$y), interval = c(1,4))
+```
+```{r}
+d <- faithful$waiting
+
+dx <- density(d)$x
+dy <- density(d)$y
+```
+
 
