@@ -1,6 +1,8 @@
 ---
 title: "GEDS boxplot"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 Library
 ```{r}
@@ -14,27 +16,66 @@ Load data
 ```{r}
 
 
-d <- readr::read_rds(path = 'test.rds.gz')
+d <- readr::read_rds(path = "test.rds.gz")
 
-d %>% 
-  dplyr::rename(FPKM = expr) %>%
-  ggplot(mapping=aes(x=cancer_types,y=FPKM,color=cancer_types)) +
-  geom_boxplot(width=0.5,outlier.colour = NA) + 
-  stat_boxplot(geom ='errorbar')  +
-  facet_wrap(~symbol, ncol = 1,scales = "free") +
-  ylab("FPKM(log2)") +
+quantile_names <- c("lower.whisker", "lower.hinge", "median", "upper.hinge", "upper.whisker")
+
+d %>%
+  # dplyr::filter(symbol == "TP53") %>% 
+  dplyr::rename(FPKM = expr) %>% 
+  tidyr::separate(col = cancer_types, into = c("cancer_types", "types")) %>% 
+  dplyr::mutate(types = stringr::str_to_title(types)) %>% 
+  dplyr::mutate(name = purrr::rep_along(cancer_types, quantile_names)) %>% 
+  tidyr::spread(key = name, value = FPKM) %>% 
+  ggplot(mapping = aes(x = cancer_types, middle = median,
+                   ymin = lower.whisker, ymax = upper.whisker,
+                   lower = lower.hinge, upper = upper.hinge, color = types)) +
+  geom_errorbar(width = 0.1, position = position_dodge(0.25)) +
+  geom_boxplot(stat = 'identity', width = 0.2, position = position_dodge(0.25)) +
+  scale_color_manual(values = c("midnightblue", "red3")) +
+  facet_wrap(~symbol, ncol = 1,scales = "free_y", strip.position = 'right') +
+  # facet_wrap(~symbol, ncol = 1, scales = "free") +
   theme(
-      axis.line = element_line(color = "black"),
-      panel.background  = element_rect(fill = "white", color = "white"),
-      axis.title.x = element_blank(),
-      axis.text.x = element_blank(),
-      strip.background = element_rect(fill = "white", color = "white"),
-      legend.title = element_blank(),
-      legend.position = "bottom",
-      panel.grid.major.y = element_blank(),
-      panel.grid.minor.y = element_blank(),
-      text = element_text(size = 20)
+    text = element_text(colour = 'black'),
+    
+    
+    axis.line = element_line(color = "black", size = 0.1),
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, colour = 'black'),
+    
+    # axis.ticks.x = element_blank(),
+    
+    strip.background = element_rect(fill = "white", color = "white"),
+    
+    panel.background = element_rect(fill = "white", color = "black", size = 0.5),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    
+    legend.position = 'top',
+    legend.key = element_rect(fill = 'white')
+  ) +
+  labs(
+    x = 'Cancer Types',
+    y = 'FPKM(log2)'
+  ) +
+  guides(
+    color = guide_legend(
+      # legend title
+      title = "Cancer Types",
+      title.position = "left",
+      # title.theme = element_text(angle = -90, size = 10),
+      # title.vjust = -0.3,
+      # title.hjust = 0.7,
+      
+      # legend label
+      label.position = "right",
+      # label.theme = element_text(size = 14),
+      
+      # legend key
+      # keyheight = unit(x = 0.085, units = "npc"),
+      reverse = TRUE
+    )
   )
-
 ```
+
 
