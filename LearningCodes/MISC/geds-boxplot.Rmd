@@ -13,7 +13,7 @@ library(ggplot2)
 
 
 Load data
-```{r}
+```{r, fig.align='center',out.extra='angle=90', echo=TRUE}
 
 
 d <- readr::read_rds(path = "test.rds.gz")
