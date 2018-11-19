@@ -21,27 +21,42 @@ d <- readr::read_rds(path = "test.rds.gz")
 quantile_names <- c("lower.whisker", "lower.hinge", "median", "upper.hinge", "upper.whisker")
 
 d %>%
-  # dplyr::filter(symbol == "TP53") %>% 
+  # dplyr::filter(symbol == "TP53") %>%
   dplyr::rename(FPKM = expr) %>% 
   tidyr::separate(col = cancer_types, into = c("cancer_types", "types")) %>% 
   dplyr::mutate(types = stringr::str_to_title(types)) %>% 
   dplyr::mutate(name = purrr::rep_along(cancer_types, quantile_names)) %>% 
-  tidyr::spread(key = name, value = FPKM) %>% 
-  ggplot(mapping = aes(x = cancer_types, middle = median,
+  # dplyr::filter(cancer_types %in% c('BRCA', 'ACC')) %>%
+  tidyr::spread(key = name, value = FPKM) ->
+  dd
+
+dd %>% 
+  dplyr::filter(types == 'Tumor') %>% 
+  dplyr::arrange(symbol, median) %>% 
+  dplyr::mutate(.r = dplyr::row_number() %>% rev()) %>% 
+  dplyr::select(cancer_types, symbol, .r) %>% 
+  dplyr::right_join(dd, by = c('cancer_types', 'symbol')) %>% 
+  dplyr::mutate(.r = 0.4 * .r) %>%
+  dplyr::arrange(-.r) ->
+  ddd
+
+ddd %>% 
+  ggplot(mapping = aes(x = .r,  middle = median,
                    ymin = lower.whisker, ymax = upper.whisker,
                    lower = lower.hinge, upper = upper.hinge, color = types)) +
-  geom_errorbar(width = 0.1, position = position_dodge(0.25)) +
-  geom_boxplot(stat = 'identity', width = 0.2, position = position_dodge(0.25)) +
+  geom_errorbar(width = 0.1, position = position_dodge(0.25, preserve = 'single')) +
+  geom_boxplot(stat = 'identity', width = 0.2, position = position_dodge(0.25, preserve = 'single')) +
   scale_color_manual(values = c("midnightblue", "red3")) +
-  facet_wrap(~symbol, ncol = 1,scales = "free_y", strip.position = 'right') +
+  facet_wrap(~symbol, ncol = 1, scales = "free", strip.position = 'right') +
+  scale_x_continuous(breaks = ddd$.r,labels = ddd$cancer_types) +
   # facet_wrap(~symbol, ncol = 1, scales = "free") +
   theme(
-    text = element_text(colour = 'black'),
-    
+    text = element_text(colour = 'black', size = 18),
     
     axis.line = element_line(color = "black", size = 0.1),
     axis.title.x = element_blank(),
     axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, colour = 'black'),
+    axis.text.y = element_text(color = 'black', size = 14),
     
     # axis.ticks.x = element_blank(),
     
@@ -77,6 +92,37 @@ d %>%
     )
   )
 ```
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+
+d <- data.frame(
+  f = rep(c("f1", "f2"), each = 3),
+  x = rep(c("a", "b", "c"), 2),
+  y = c(1, 4, 3, 6, 7, 1)
+)
+
+# No easy way to order categories within facets
+ggplot(d, aes(x, y)) +
+  geom_col() +
+  facet_wrap(~ f)
+
+d <- d %>% 
+  ungroup() %>%   # As a precaution / handle in a separate .grouped_df method
+  arrange(f, y) %>%   # arrange by facet variables and continuous values
+  mutate(.r = row_number()) # Add a row number variable
+
+ggplot(d, aes(.r, y)) +  # Use .r instead of x
+  geom_col() +
+  facet_wrap(~ f, scales = "free") +  # Should free scales (though could be left to user)
+  scale_x_continuous(  # This handles replacement of .r for x
+    breaks = d$.r,     # notice need to reuse data frame
+    labels = d$x
+  )
+```
+
+
 ```{r}
 devtools::session_info()
 ```
