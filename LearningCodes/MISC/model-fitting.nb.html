@@ -1701,18 +1701,49 @@ $(document).ready(function () {
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml0Lm5vcm0kYWljXG5cbmBgYCJ9 -->
-<pre class="r"><code>fit.norm$aic
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShmaXRkaXN0cnBsdXMpXG5saWJyYXJ5KGxvZ3NwbGluZSlcblxueCA8LSBjKDM3LjUwLDQ2Ljc5LDQ4LjMwLDQ2LjA0LDQzLjQwLDM5LjI1LDM4LjQ5LDQ5LjUxLDQwLjM4LDM2Ljk4LDQwLjAwLFxuMzguNDksMzcuNzQsNDcuOTIsNDQuNTMsNDQuOTEsNDQuOTEsNDAuMDAsNDEuNTEsNDcuOTIsMzYuOTgsNDMuNDAsXG40Mi4yNiw0MS44OSwzOC44Nyw0My4wMiwzOS4yNSw0MC4zOCw0Mi42NCwzNi45OCw0NC4xNSw0NC45MSw0My40MCxcbjQ5LjgxLDM4Ljg3LDQwLjAwLDUyLjQ1LDUzLjEzLDQ3LjkyLDUyLjQ1LDQ0LjkxLDI5LjU0LDI3LjEzLDM1LjYwLFxuNDUuMzQsNDMuMzcsNTQuMTUsNDIuNzcsNDIuODgsNDQuMjYsMjcuMTQsMzkuMzEsMjQuODAsMTYuNjIsMzAuMzAsXG4zNi4zOSwyOC42MCwyOC41MywzNS44NCwzMS4xMCwzNC41NSw1Mi42NSw0OC44MSw0My40Miw1Mi40OSwzOC4wMCxcbjM4LjY1LDM0LjU0LDM3LjcwLDM4LjExLDQzLjA1LDI5Ljk1LDMyLjQ4LDI0LjYzLDM1LjMzLDQxLjM0KVxuXG5kZXNjZGlzdChkYXRhID0geCwgZGlzY3JldGUgPSBGQUxTRSlcblxuXG5maXQud2VpYnVsbCA8LSBmaXRkaXN0KHgsICd3ZWlidWxsJylcbmZpdC5ub3JtIDwtIGZpdGRpc3QoeCwgJ25vcm0nKVxuXG5wbG90KGZpdC5ub3JtKVxucGxvdChmaXQud2VpYnVsbClcblxuZml0LndlaWJ1bGwkYWljXG5maXQubm9ybSRhaWNcbmBgYCJ9 -->
+<pre class="r"><code>library(fitdistrplus)
+library(logspline)
+
+x &lt;- c(37.50,46.79,48.30,46.04,43.40,39.25,38.49,49.51,40.38,36.98,40.00,
+38.49,37.74,47.92,44.53,44.91,44.91,40.00,41.51,47.92,36.98,43.40,
+42.26,41.89,38.87,43.02,39.25,40.38,42.64,36.98,44.15,44.91,43.40,
+49.81,38.87,40.00,52.45,53.13,47.92,52.45,44.91,29.54,27.13,35.60,
+45.34,43.37,54.15,42.77,42.88,44.26,27.14,39.31,24.80,16.62,30.30,
+36.39,28.60,28.53,35.84,31.10,34.55,52.65,48.81,43.42,52.49,38.00,
+38.65,34.54,37.70,38.11,43.05,29.95,32.48,24.63,35.33,41.34)
+
+descdist(data = x, discrete = FALSE)
+
+
+fit.weibull &lt;- fitdist(x, 'weibull')
+fit.norm &lt;- fitdist(x, 'norm')
+
+plot(fit.norm)
+plot(fit.weibull)
+
+fit.weibull$aic
+fit.norm$aic</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<div id="mixed-model-of-the-data-from-the-link" class="section level2">
+<h2>Mixed model of the data from the <a href="https://ase.tufts.edu/gsc/gradresources/guidetomixedmodelsinr/mixed%20model%20guide.html">link</a></h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3RyKHJlY29nKVxuXG5gYGAifQ== -->
+<pre class="r"><code>str(recog)
 </code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDUyM1xuIn0= -->
-<pre><code>[1] 523</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gc3RyKHJlY29nKSA6IG9iamVjdCAncmVjb2cnIG5vdCBmb3VuZFxuIn0= -->
+<pre><code>Error in str(recog) : object 'recog' not found</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
+</div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiRml0dGluZyBtb2RlbCIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKCmBgYHtyfQpsaWJyYXJ5KGZpdGRpc3RycGx1cykKbGlicmFyeShsb2dzcGxpbmUpCgp4IDwtIGMoMzcuNTAsNDYuNzksNDguMzAsNDYuMDQsNDMuNDAsMzkuMjUsMzguNDksNDkuNTEsNDAuMzgsMzYuOTgsNDAuMDAsCjM4LjQ5LDM3Ljc0LDQ3LjkyLDQ0LjUzLDQ0LjkxLDQ0LjkxLDQwLjAwLDQxLjUxLDQ3LjkyLDM2Ljk4LDQzLjQwLAo0Mi4yNiw0MS44OSwzOC44Nyw0My4wMiwzOS4yNSw0MC4zOCw0Mi42NCwzNi45OCw0NC4xNSw0NC45MSw0My40MCwKNDkuODEsMzguODcsNDAuMDAsNTIuNDUsNTMuMTMsNDcuOTIsNTIuNDUsNDQuOTEsMjkuNTQsMjcuMTMsMzUuNjAsCjQ1LjM0LDQzLjM3LDU0LjE1LDQyLjc3LDQyLjg4LDQ0LjI2LDI3LjE0LDM5LjMxLDI0LjgwLDE2LjYyLDMwLjMwLAozNi4zOSwyOC42MCwyOC41MywzNS44NCwzMS4xMCwzNC41NSw1Mi42NSw0OC44MSw0My40Miw1Mi40OSwzOC4wMCwKMzguNjUsMzQuNTQsMzcuNzAsMzguMTEsNDMuMDUsMjkuOTUsMzIuNDgsMjQuNjMsMzUuMzMsNDEuMzQpCgpkZXNjZGlzdChkYXRhID0geCwgZGlzY3JldGUgPSBGQUxTRSkKCgpmaXQud2VpYnVsbCA8LSBmaXRkaXN0KHgsICd3ZWlidWxsJykKZml0Lm5vcm0gPC0gZml0ZGlzdCh4LCAnbm9ybScpCgpwbG90KGZpdC5ub3JtKQpwbG90KGZpdC53ZWlidWxsKQoKZml0LndlaWJ1bGwkYWljCmZpdC5ub3JtJGFpYwpgYGAKCg==</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiRml0dGluZyBtb2RlbCIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKCmBgYHtyfQpsaWJyYXJ5KGZpdGRpc3RycGx1cykKbGlicmFyeShsb2dzcGxpbmUpCgp4IDwtIGMoMzcuNTAsNDYuNzksNDguMzAsNDYuMDQsNDMuNDAsMzkuMjUsMzguNDksNDkuNTEsNDAuMzgsMzYuOTgsNDAuMDAsCjM4LjQ5LDM3Ljc0LDQ3LjkyLDQ0LjUzLDQ0LjkxLDQ0LjkxLDQwLjAwLDQxLjUxLDQ3LjkyLDM2Ljk4LDQzLjQwLAo0Mi4yNiw0MS44OSwzOC44Nyw0My4wMiwzOS4yNSw0MC4zOCw0Mi42NCwzNi45OCw0NC4xNSw0NC45MSw0My40MCwKNDkuODEsMzguODcsNDAuMDAsNTIuNDUsNTMuMTMsNDcuOTIsNTIuNDUsNDQuOTEsMjkuNTQsMjcuMTMsMzUuNjAsCjQ1LjM0LDQzLjM3LDU0LjE1LDQyLjc3LDQyLjg4LDQ0LjI2LDI3LjE0LDM5LjMxLDI0LjgwLDE2LjYyLDMwLjMwLAozNi4zOSwyOC42MCwyOC41MywzNS44NCwzMS4xMCwzNC41NSw1Mi42NSw0OC44MSw0My40Miw1Mi40OSwzOC4wMCwKMzguNjUsMzQuNTQsMzcuNzAsMzguMTEsNDMuMDUsMjkuOTUsMzIuNDgsMjQuNjMsMzUuMzMsNDEuMzQpCgpkZXNjZGlzdChkYXRhID0geCwgZGlzY3JldGUgPSBGQUxTRSkKCgpmaXQud2VpYnVsbCA8LSBmaXRkaXN0KHgsICd3ZWlidWxsJykKZml0Lm5vcm0gPC0gZml0ZGlzdCh4LCAnbm9ybScpCgpwbG90KGZpdC5ub3JtKQpwbG90KGZpdC53ZWlidWxsKQoKZml0LndlaWJ1bGwkYWljCmZpdC5ub3JtJGFpYwpgYGAKCiMjIE1peGVkIG1vZGVsIG9mIHRoZSBkYXRhIGZyb20gdGhlIFtsaW5rXShodHRwczovL2FzZS50dWZ0cy5lZHUvZ3NjL2dyYWRyZXNvdXJjZXMvZ3VpZGV0b21peGVkbW9kZWxzaW5yL21peGVkJTIwbW9kZWwlMjBndWlkZS5odG1sKQoKYGBge3J9CnN0cihyZWNvZykKYGBgCgoK</div>
 
 
 

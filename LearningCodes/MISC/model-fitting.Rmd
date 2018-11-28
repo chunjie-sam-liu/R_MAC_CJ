@@ -29,3 +29,10 @@ fit.weibull$aic
 fit.norm$aic
 ```
 
+## Mixed model of the data from the [link](https://ase.tufts.edu/gsc/gradresources/guidetomixedmodelsinr/mixed%20model%20guide.html)
+
+```{r}
+str(recog)
+```
+
+
