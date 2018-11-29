@@ -1,0 +1,46 @@
+---
+title: "Particle Swarm Optimization"
+output: html_notebook
+---
+
+[code source](https://blog.csdn.net/zakachen/article/details/51718743)
+
+1. 步骤一：各种参数初始化；
+
+2. 步骤二：单个粒子历史最优经验
+
+3. 步骤三：所有粒子历史最优经验
+
+```{r}
+k<-0.729 # init param
+phi_1<-2.05
+phi_2<-2.05
+
+inifunc <- function(dim, wmin, wmax, vmin, vmax, n) {
+  G <- rep(NA, 2 * dim + 1)
+  A <- matrix(runif(n * dim, wmin, wmax), nrow = n, ncol = dim)
+  B <- matrix(runif(n * dim, vmin, vmax), nrow = n, ncol = dim)
+  C <- apply(A, 1, func)
+  G <- cbind(A, B, C)[which(C == min(C)), ]
+  return(rbind(cbind(A, B, C), G))
+}
+
+Gbestfunc <- function(x, dim, n) {
+  C <- x[-(n + 1), 2 * dim + 1]
+  return(rbind(x[-(n + 1), ], x[which(C == min(C)), ]))
+}
+
+PSOAfunc<-function(x,dim,wmin,wmax,vmin,vmax,n){
+A<-x[-(n+1),1:dim]
+B<-x[-(n+1),(dim+1):(2*dim)]
+C<-x[-(n+1),2*dim+1]
+for(i in 1:n){
+neww<-A[i,]+B[i,]
+for(j in 1:dim){
+if(neww[j]>wmax || neww[j]vmax || B[i,k]vmax || B[i,k]
+
+```
+
+
+
+

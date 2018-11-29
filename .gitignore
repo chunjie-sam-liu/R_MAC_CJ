@@ -39,3 +39,4 @@ vignettes/*.pdf
 .vscode
 
 rsconnect/
+.DS_Store
