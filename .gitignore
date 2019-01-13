@@ -37,6 +37,7 @@ vignettes/*.pdf
 .Rprofile
 
 .vscode
+*.icloud
 
 rsconnect/
 .DS_Store
