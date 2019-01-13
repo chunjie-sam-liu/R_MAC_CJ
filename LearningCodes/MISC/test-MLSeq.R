@@ -45,6 +45,10 @@ trained(fit)
 set.seed(123)
 
 fit.svm <- classify(data = data.trainS4, method = 'svmRadial', preProcessing = 'deseq-vst', ref = 'T', tuneLength = 10, control = trainControl(method = 'repeatedcv', number = 5, repeats = 10, classProbs = T))
+show(fit.svm)
+
+trained(fit.svm)
+plot(fit.svm)
 
 # caret::trainControl parameter tuning.
 # Optimizing model parameters.
@@ -68,10 +72,13 @@ ctrl.voomDLDA <- voomControl(method = 'repeatedcv', number = 5, repeats = 10, tu
 
 
 fit.svm <- classify(data = data.trainS4, method = 'svmRadial', preProcessing = 'deseq-vst', ref = 'T', tuneLength = 10, control = ctrl.svm)
+trained(fit.svm)
 
 fit.plda <- classify(data = data.trainS4, method = 'PLDA', normalize = 'deseq', ref = 'T', control = ctrl.plda)
+trained(fit.plda)
 
 fit.voomDLDA <- classify(data = data.trainS4, method = 'voomDLDA', ref = 'T', control = ctrl.voomDLDA)
+trained(fit.voomDLDA)
 
 show(fit.svm)
 show(fit.plda)
@@ -84,6 +91,7 @@ trained(fit.voomDLDA)
 # predicting --------------------------------------------------------------
 
 pred.svm <- predict(fit.svm, data.testS4)
+pred.svm
 pred.svm <- relevel(pred.svm, ref = 'T')
 actual <- relevel(classts$condition, ref = 'T')
 
@@ -129,3 +137,14 @@ pred.voomNSC <- predict(fit.voomNSC, data.testS4)
 
 
 selectedGenes(fit.voomNSC)
+selectedGenes(fit.svm)
+
+ctrl <- discreteControl(method = 'repeatedcv', number = 5, repeats = 2, tuneLength = 10)
+fit <- classify(data = data.trainS4, method = 'PLDA', normalize = 'deseq', ref = 'T', control = ctrl)
+
+show(fit)
+trained(fit)
+method(fit) <- 'PLDA2'
+show(fit)
+metaData(fit)
+
