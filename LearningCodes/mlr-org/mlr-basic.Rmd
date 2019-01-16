@@ -295,5 +295,76 @@ data <- generateHyperParsEffectData(res)
 plotHyperParsEffect(hyperpars.effect.data = data, x = 'iteration', y = 'acc.test.mean', plot.type = 'line')
 ```
 
+Benchmark
 
+```{r}
+
+lrns <- list(makeLearner(cl = 'classif.lda'), makeLearner('classif.rpart'))
+rdesc <- makeResampleDesc(method = 'CV', iters = 10L)
+bmr <- benchmark(learners = lrns, tasks = sonar.task, resamplings = rdesc, measures = mmce)
+
+getBMRAggrPerformances(bmr, drop = TRUE, as.df = TRUE)
+getBMRAggrPerformances(bmr)
+getBMRPredictions(bmr)
+getBMRPredictions(bmr, learner.ids = 'classif.rpart', as.df = TRUE)
+getBMRTaskIds(bmr)
+getBMRLearnerIds(bmr)
+getBMRMeasureIds(bmr)
+getBMRModels(bmr)
+getBMRLearners(bmr)
+getBMRMeasures(bmr)
+
+
+lrns2 = list(makeLearner("classif.randomForest"), makeLearner("classif.qda"), makeLearner('classif.ksvm'))
+bmr2 = benchmark(lrns2, sonar.task, rdesc, show.info = FALSE)
+bmr2
+mergeBenchmarkResults(list(bmr, bmr2))
+
+rin <- getBMRPredictions(bmr)[[1]][[1]]$instance
+
+bmr3 <- benchmark(lrns2, sonar.task, rin, show.info = FALSE)
+bmr3
+mergeBenchmarkResults(list(bmr, bmr3))
+
+
+lrns = list(
+  makeLearner("classif.lda", id = "lda"),
+  makeLearner("classif.rpart", id = "rpart"),
+  makeLearner("classif.randomForest", id = "randomForest")
+)
+
+ring.task = convertMLBenchObjToTask("mlbench.ringnorm", n = 600)
+wave.task = convertMLBenchObjToTask("mlbench.waveform", n = 600)
+
+tasks = list(iris.task, sonar.task, pid.task, ring.task, wave.task)
+
+rdesc = makeResampleDesc("CV", iters = 10)
+meas = list(mmce, ber, timetrain)
+bmr = benchmark(lrns, tasks, rdesc, meas, show.info = FALSE)
+
+bmr
+perf <- getBMRPerformances(bmr, as.df = TRUE)
+plotBMRBoxplots(bmr = bmr, measure = mmce, order.lrns = getBMRLearnerIds(bmr = bmr))
+plotBMRSummary(bmr = bmr)
+m <- convertBMRToRankMatrix(bmr = bmr, measure = mmce)
+plotBMRRanksAsBarChart(bmr, pos = 'tile', order.lrns = getBMRLearnerIds(bmr))
+
+friedmanTestBMR(bmr)
+friedmanPostHocTestBMR(bmr = bmr, p.value = 0.1)
+
+perf <- getBMRPerformances(bmr, as.df = TRUE)
+
+```
+
+Parallelization
+```{r}
+library(parallelMap)
+parallelMap::parallelStartMulticore(2)
+rdesc = makeResampleDesc("CV", iters = 3)
+r = resample("classif.lda", iris.task, rdesc)
+
+parallelMap::parallelStop()
+parallelGetRegisteredLevels()
+
+```
 
