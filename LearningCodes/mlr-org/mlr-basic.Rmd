@@ -1,0 +1,299 @@
+---
+title: "MLR basics"
+output: html_notebook
+---
+
+```{r}
+library(mlr)
+library(magrittr)
+data(BostonHousing, package = 'mlbench')
+regr.task <- makeRegrTask(id = 'bh', data = BostonHousing, target = 'medv')
+regr.task
+
+data(BreastCancer, package = 'mlbench')
+df <- BreastCancer
+head(df)
+df$Id <- NULL
+classif.task <- makeClassifTask(id = 'BreastCancer', data = df, target = 'Class', positive = 'malignant')
+
+
+removeConstantFeatures(classif.task)
+dropFeatures(task = classif.task, features = c('Cell.size'))
+task <- normalizeFeatures(obj = classif.task, method = 'range')
+summary(getTaskData(task))
+
+```
+Learner
+```{r}
+classif.lrn <- makeLearner(cl = 'classif.randomForest', predict.type = 'prob', fix.factors.prediction = TRUE)
+classif.lrn$par.set
+classif.lrn$par.vals
+names(classif.lrn)
+getHyperPars(learner = classif.lrn)
+getParamSet(classif.lrn)
+getLearnerParamSet(classif.lrn)
+getLearnerParVals(classif.lrn)
+
+getParamSet('classif.randomForest')
+getLearnerShortName(learner = classif.lrn)
+
+classif.lrn <- setPredictType(learner = classif.lrn, predict.type = 'response')
+lrns <- listLearners()
+names(lrns)
+head(lrns[c('class', 'package')])
+lrns <- listLearners(obj = classif.task, properties = 'prob', check.packages = F)
+
+```
+Train
+```{r}
+task <- makeClassifTask(id = 'iris', data = iris, target = 'Species')
+lrn <- makeLearner(cl = 'classif.lda')
+
+mod <- train(learner = lrn, task = task)
+
+mod <- train('surv.coxph', lung.task)
+data(ruspini, package = 'cluster')
+
+plot(y~x, ruspini)
+
+
+ruspini.task <- makeClusterTask(data = ruspini)
+listLearners(obj = ruspini.task, warn.missing.packages = F, check.packages = F)
+lrn <- makeLearner('cluster.kmeans', centers = 4)
+mod <- train(learner = lrn, task = ruspini.task)
+names(mod)
+mod$learner
+mod$learner.model
+mod$task.desc
+mod$features
+getLearnerModel(mod)
+
+n <- getTaskSize(bh.task)
+train.set <- sample(n, size = n / 3)
+mod = train(learner = 'regr.lm', bh.task, subset = train.set)
+
+
+
+target <- getTaskTargets(bc.task)
+tab <- as.numeric(table(target))
+w <- 1/tab[target]
+train('classif.rpart', task = bc.task, weights = w) -> mod
+```
+Prediction
+```{r}
+n <- getTaskSize(bh.task)
+train.set <- seq(1, n, by = 2)
+test.set <- seq(2, n, by = 2)
+lrn <- makeLearner(cl = 'regr.gbm', n.trees = 100)
+mod <- train(learner = lrn, task = bh.task, subset = train.set)
+task.pred <- predict(mod, task = bh.task, subset = test.set)
+
+
+n <- nrow(iris)
+iris.train <- iris[seq(1, n, by = 2), -5]
+iris.test <- iris[seq(2, n, by = 2), -5]
+task <- makeClusterTask(data = iris.train)
+mod <- train('cluster.kmeans', task)
+
+
+newdata.pred <- predict(mod, newdata = iris.test)
+
+
+lrn.lm = makeLearner("regr.lm", predict.type = 'se')
+mod.lm = train(lrn.lm, bh.task, subset = train.set)
+task.pred.lm = predict(mod.lm, task = bh.task, subset = test.set)
+task.pred.lm
+
+
+
+lrn = makeLearner("cluster.cmeans", predict.type = "prob")
+mod = train(lrn, mtcars.task)
+
+pred = predict(mod, task = mtcars.task)
+head(getPredictionProbabilities(pred))
+
+
+mod = train("classif.lda", task = iris.task)
+
+pred = predict(mod, task = iris.task)
+pred
+
+lrn = makeLearner("classif.rpart", predict.type = "prob")
+mod = train(lrn, iris.task)
+
+pred = predict(mod, newdata = iris)
+head(getPredictionProbabilities(pred))
+calculateConfusionMatrix(pred)
+conf.matrix <- calculateConfusionMatrix(pred = pred, relative = T, sums = T)
+
+
+
+lrn = makeLearner("classif.rpart", predict.type = "prob")
+mod = train(lrn, task = sonar.task)
+
+### Label of the positive class
+getTaskDesc(sonar.task)$positive
+
+pred1 = predict(mod, sonar.task)
+pred1$threshold
+calculateConfusionMatrix(pred = pred1, relative = T, sums = T)
+
+pred2 = setThreshold(pred1, 0.9)
+pred2
+calculateConfusionMatrix(pred = pred2, relative = T, sums = T)
+```
+Visualizing the prediction
+```{r}
+lrn = makeLearner("classif.rpart", id = "CART")
+plotLearnerPrediction(lrn, task = iris.task)
+```
+Data preprocessing
+```{r}
+sonar.task
+lrn <- makePreprocWrapperCaret(learner = 'classif.qda', ppc.pca = T, ppc.thresh = 0.9)
+mod <- train(lrn, sonar.task)
+
+rin <- makeResampleInstance("CV", iters = 3, stratify = T, task = sonar.task)
+res <- benchmark(list('classif.qda', lrn), sonar.task, rin, show.info = FALSE)
+
+
+getParamSet(lrn)
+
+ps <- makeParamSet(
+  makeIntegerParam('ppc.pcaComp', lower = 1, upper = getTaskNFeats(sonar.task)),
+  makeDiscreteParam('predict.method', values = c('plug-in', 'debiased'))
+)
+
+ctrl = makeTuneControlGrid(resolution = 10)
+res = tuneParams(lrn, sonar.task, rin, par.set = ps, control = ctrl, show.info = FALSE)
+res
+```
+Performance
+
+
+```{r}
+n = getTaskSize(bh.task)
+lrn = makeLearner("regr.gbm", n.trees = 1000)
+mod = train(lrn, task = bh.task, subset = seq(1, n, 2))
+pred = predict(mod, task = bh.task, subset = seq(2, n, 2))
+
+performance(pred, measures = list(mse, medse, mae, timetrain, timepredict), model = mod)
+
+lrn = makeLearner("cluster.kmeans", centers = 3)
+mod = train(lrn, mtcars.task)
+pred = predict(mod, task = mtcars.task)
+
+# Calculate the Dunn index
+performance(pred, measures = dunn, task = mtcars.task)
+
+lrn = makeLearner("classif.rpart", predict.type = "prob")
+mod = train(lrn, task = sonar.task)
+pred = predict(mod, task = sonar.task)
+
+performance(pred, measures = list(auc, mmce, fpr))
+
+
+lrn = makeLearner("classif.lda", predict.type = "prob")
+n = getTaskSize(sonar.task)
+mod = train(lrn, task = sonar.task, subset = seq(1, n, by = 2))
+pred = predict(mod, task = sonar.task, subset = seq(2, n, by = 2))
+
+# Performance for the default threshold 0.5
+performance(pred, measures = list(fpr, fnr, mmce))
+d = generateThreshVsPerfData(pred, measures = list(fpr, fnr, mmce))
+plotThreshVsPerf(d)
+plotThreshVsPerfGGVIS(d)
+
+
+r = calculateROCMeasures(pred)
+```
+
+Resampling
+
+```{r}
+rdesc <- makeResampleDesc("CV", iters = 3)
+r <- resample('regr.lm', bh.task, rdesc)
+
+r
+
+rdesc = makeResampleDesc("Subsample", iters = 5)
+
+# Subsampling with 5 iterations and 4/5 training data
+rdesc = makeResampleDesc("Subsample", iters = 50, split = 4/5)
+
+# Classification tree with information splitting criterion
+lrn = makeLearner("classif.rpart", parms = list(split = "information"))
+
+# Calculate the performance measures
+r = resample(lrn, sonar.task, rdesc, measures = list(mmce, fpr, fnr, timetrain))
+r
+```
+Tuning hyperparameters
+
+```{r}
+# create search space
+ps <- makeParamSet(
+  makeNumericParam("C", lower = 0.01, up = 0.1)
+)
+
+# optimization algorithm 
+ctrl <- makeTuneControlRandom(maxit = 100L)
+
+# evalutate method use 3-fold CV
+rdesc <- makeResampleDesc(method = 'CV', iters = 3L)
+measure <- acc
+
+
+# 1. search space and optimization
+# 2. how to visualize the hyperparameter tuning effects
+
+discrete_ps <- makeParamSet(
+  makeDiscreteParam(id = "C", values = c(0.5, 1.0, 1.5, 2.0)),
+  makeDiscreteParam(id = 'sigma', values = c(0.5, 1.0, 1.5, 2.0))
+)
+discrete_ps
+
+num_ps <- makeParamSet(
+  makeNumericParam('C', lower = -10, upper = 10, trafo = function(x) 10^x),
+  makeNumericParam('sigma', lower = -10, upper = 10, trafo = function(x) 10^x)
+)
+
+ctrl <- makeTuneControlGrid(resolution = 15L)
+ctrl <- makeTuneControlRandom(maxit = 10L)
+
+rdesc <- makeResampleDesc(method = 'CV', iters = 3L)
+
+
+# use the SVM parameters
+
+ctrl <- makeTuneControlGrid()
+
+res_dis <- tuneParams(learner = 'classif.ksvm', task = iris.task, resampling = rdesc, measures = acc, par.set = discrete_ps, control = ctrl)
+
+ctrl <- makeTuneControlRandom(maxit = 100L)
+
+res_num <- tuneParams(learner = 'classif.ksvm', task = iris.task, resampling = rdesc, measures = list(acc, setAggregation(acc, test.sd)), par.set = num_ps, control = ctrl, show.info = FALSE)
+
+lrn <- setHyperPars(makeLearner('classif.ksvm'), par.vals = res_num$x)
+m <- train(learner = lrn, task = iris.task)
+
+pred <- predict(m, task = iris.task)
+
+performance(pred = pred, measures = acc, task = iris.task, model = m)
+calculateConfusionMatrix(pred = pred)
+pred
+
+generateHyperParsEffectData(res_num)
+
+rdesc2 <- makeResampleDesc(method = 'Holdout', predict = 'both')
+res2 <- tuneParams(learner = 'classif.ksvm', task = iris.task, resampling = rdesc2, measures = list(acc, setAggregation(acc, train.mean)), par.set = num_ps, control = ctrl, show.info = FALSE)
+generateHyperParsEffectData(res2)
+
+
+res <- tuneParams('classif.ksvm', task = iris.task, resampling = rdesc, par.set = num_ps, control = ctrl, measures = list(acc, mmce), show.info = FALSE)
+data <- generateHyperParsEffectData(res)
+plotHyperParsEffect(hyperpars.effect.data = data, x = 'iteration', y = 'acc.test.mean', plot.type = 'line')
+```
+
+
+
