@@ -368,3 +368,45 @@ parallelGetRegisteredLevels()
 
 ```
 
+Case study
+```{r}
+# 1. define learning task
+# 2. tune the model
+# 3. benchmark experiment
+# 4. performance of the model
+
+data(BostonHousing, package = 'mlbench')
+
+regr.task <- makeRegrTask(data = BostonHousing, target = 'medv')
+regr.task
+
+set.seed(1234)
+# define search space
+ps_ksvm <- makeParamSet(
+  makeNumericParam('sigma', lower = -12, upper = 12, trafo = function(x) 2^x)
+)
+
+ps_rf <- makeParamSet(
+  makeIntegerParam('num.trees', lower = 1L, upper = 200L)
+)
+
+# choose resampling strategy
+rdesc <- makeResampleDesc('CV', iters = 5L)
+
+# choose performance measure
+meas <- rmse
+
+# choose tuning method
+ctrl <- makeTuneControlCMAES(budget = 100L)
+
+# tune wrappers
+tuned.ksvm <- makeTuneWrapper(learner = 'regr.ksvm', resampling = rdesc, measures = meas, par.set = ps_ksvm, control = ctrl, show.info = FALSE)
+tuned.rf <- makeTuneWrapper(learner = 'regr.ranger', resampling = rdesc, measures = meas, par.set = ps_rf, control = ctrl, show.info = FALSE)
+
+# benchmark experiment
+lrns <- list(makeLearner('regr.lm'), tuned.ksvm, tuned.rf)
+bmr <- benchmark(learners = lrns, tasks = regr.task, resamplings = rdesc, measures = rmse, show.info = FALSE)
+plotBMRBoxplots(bmr)
+
+```
+
