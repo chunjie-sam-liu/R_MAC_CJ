@@ -17,26 +17,12 @@ coldata <-  DataFrame(condition = factor(rep(c("N", "T"), c(29, 29))))
 
 dds <- DESeqDataSetFromMatrix(countData = cts, colData = coldata, design = ~ condition)
 
+library(BiocParallel)
 
 dds <- DESeq(dds)
-res <- results(object = dds, name = 'condition_T_vs_N')
-plotMA(res, ylim = c(-2, 2))
 
+res <- results(dds, name = 'condition_T_vs_N')
 resLFC <- lfcShrink(dds = dds, coef = 'condition_T_vs_N', type = 'apeglm')
-resNorm <- lfcShrink(dds = dds, coef = 'condition_T_vs_N', type = 'normal')
-resAsh <- lfcShrink(dds = dds, coef = 'condition_T_vs_N', type = 'ashr')
-plotMA(resLFC, ylim = c(-2, 2))
-par(mfrow=c(1,3), mar=c(4,4,2,1))
-xlim <- c(1,1e5); ylim <- c(-3,3)
-plotMA(resLFC, xlim=xlim, ylim=ylim, main="apeglm")
-plotMA(resNorm, xlim=xlim, ylim=ylim, main="normal")
-plotMA(resAsh, xlim=xlim, ylim=ylim, main="ashr")
-
-
-plotCounts(dds = dds, gene = which.min(res$padj), intgroup = 'condition')
-
-mcols(res)$description
-
 
 ```
 ```{r}
@@ -60,47 +46,5 @@ dds <- DESeqDataSetFromMatrix(countData = cts, colData = coldata, design = ~cond
 
 
 
-```
-
-Two transformation methods
-```{r}
-# vsd <- vst(object = dds, blind = F)
-rld <- rlog(object = dds, blind = F)
-meanSdPlot(assay(rld))
-
-head(assay(rld), 3)
-
-ntd <- normTransform(dds)
-library(vsn)
-meanSdPlot(assay(ntd))
-meanSdPlot(assay(dds))
-
-
-```
-```{r}
-library('pheatmap')
-select <- order(rowMeans(counts(object = dds, normalized = T)), decreasing = T)[1:20]
-
-df <- as.data.frame(colData(dds)[,'condition'])
-pheatmap(assay(ntd)[select,], cluster_rows = F)
-
-
-pheatmap(assay(rld)[select,], cluster_rows=FALSE)
-```
-
-```{r}
-sampleDists <- dist(t(assay(rld)))
-library("RColorBrewer")
-sampleDistMatrix <- as.matrix(sampleDists)
-rownames(sampleDistMatrix) <- paste(rld$condition,sep="-")
-colnames(sampleDistMatrix) <- NULL
-colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
-pheatmap(sampleDistMatrix,
-         clustering_distance_rows=sampleDists,
-         clustering_distance_cols=sampleDists,
-         col=colors)
-```
-```{r}
-plotPCA(rld, intgroup=c("condition"))
 ```
 

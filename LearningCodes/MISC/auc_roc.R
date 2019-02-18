@@ -146,18 +146,47 @@ lines(xweight, yweight)
 
 
 
+library(tidyverse)
+library(caret)
+data("PimaIndiansDiabetes2", package = "mlbench")
+pima.data <- na.omit(PimaIndiansDiabetes2)
+sample_n(pima.data, 3)
+set.seed(123)
+training.samples <- pima.data$diabetes %>%
+  createDataPartition(p = 0.8, list = FALSE)
+train.data  <- pima.data[training.samples, ]
+test.data <- pima.data[-training.samples, ]
+set.seed(123)
+model <- train(
+  diabetes ~., data = train.data, method = "svmLinear",
+  trControl = trainControl("cv", number = 10),
+  preProcess = c("center","scale")
+)
+# Make predictions on the test data
+predicted.classes <- model %>% predict(test.data)
+head(predicted.classes)
+mean(predicted.classes == test.data$diabetes)
+set.seed(123)
+model <- train(
+  diabetes ~., data = train.data, method = "svmLinear",
+  trControl = trainControl("cv", number = 10),
+  tuneGrid = expand.grid(C = seq(0, 2, length = 20)),
+  preProcess = c("center","scale")
+)
+# Plot model accuracy vs different values of Cost
+plot(model)
 
+set.seed(123)
+model <- train(
+  diabetes ~., data = train.data, 
+  method = "svmRadial",
+  trControl = trainControl("repeatedcv", number = 10, classProbs = T),
+  preProcess = c("center","scale"),
+  tuneLength = 10
+)
 
-
-
-
-
-
-
-
-
-
-
+model$bestTune
+predicted.classes <- model %>% predict(test.data, type = 'prob')
 
 
 
