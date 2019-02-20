@@ -186,7 +186,9 @@ model <- train(
 )
 
 model$bestTune
-predicted.classes <- model %>% predict(test.data, type = 'prob')
+c("#104E8B", "#1E90FF", "#EE2C2C", "#FF6A6A")
+
+
 
 
 
