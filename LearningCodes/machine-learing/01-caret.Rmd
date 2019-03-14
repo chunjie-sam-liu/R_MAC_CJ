@@ -1,0 +1,123 @@
+---
+title: "Caret"
+output: html_notebook
+---
+
+
+```{r}
+library(magrittr)
+# visualizations ----------------------------------------------------------
+
+str(iris)
+
+library(AppliedPredictiveModeling)
+transparentTheme(trans = 0.4)
+library(caret)
+featurePlot(x = iris[, 1:4], y = iris$Species, plot = 'pairs', auto.key = list(columns = 3))
+
+
+```
+```{r}
+featurePlot(x = iris[, 1:4], y = iris$Species, plot = 'ellipse', auto.key = list(columns = 3))
+```
+Overlayed Density Plots
+```{r}
+transparentTheme(trans = 0.9)
+featurePlot(
+  x = iris[,1:4],
+  y = iris$Species,
+  plot = 'density',
+  scales = list(
+    x = list(relation = 'free'),
+    y = list(relation = 'free')
+  ),
+  adjust = 1.5,
+  pch = '|',
+  layout = c(4,1),
+  auto.key = list(columns = 3)
+)
+
+```
+
+```{r}
+featurePlot(
+  x = iris[, 1:4],
+  y = iris$Species,
+  plot = 'box',
+  scales = list(
+    y = list(relation = 'free'),
+    x = list(rot = 90)
+  ),
+  layout = c(4, 1),
+  auto.key = list(columns = 2)
+)
+```
+
+Scatter plots
+For regression, the Boston Housing data is used:
+```{r}
+library(mlbench)
+data("BostonHousing")
+regVar <- c('age', 'lstat', 'tax')
+str(BostonHousing[, regVar])
+
+
+
+```
+
+```{r}
+theme1 <- trellis.par.get()
+theme1$plot.symbol$col = rgb(0.2, .2, .2, .4)
+theme1$plot.symbol$pch = 16
+theme1$plot.line$col <- rgb(1,0,0,.7)
+theme1$plot.line$lwd <- 2
+trellis.par.set(theme1)
+featurePlot(
+  x = BostonHousing[, regVar],
+  y = BostonHousing$medv,
+  plot = 'scatter',
+  layout = c(3, 1)
+)
+```
+
+```{r}
+featurePlot(
+  x = BostonHousing[, regVar],
+  y = BostonHousing$medv,
+  plot = 'scatter',
+  type = c('p', 'smooth'),
+  span = .5,
+  layout = c(3, 1)
+)
+```
+
+
+
+```{r}
+library(earth)
+data(etitanic)
+head(etitanic)
+head(model.matrix(survived ~ ., data = etitanic))
+
+dummies <- dummyVars(survived ~ ., data = etitanic)
+head(dummies)
+head(predict(dummies, newdata = etitanic))
+```
+
+
+```{r}
+data(mdrr)
+data.frame(table(mdrrDescr$nR11))
+
+
+```
+
+
+
+
+
+
+
+
+
+
