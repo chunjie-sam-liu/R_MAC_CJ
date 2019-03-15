@@ -49,3 +49,88 @@ cluster.task <- makeClusterTask(data = mtcars)
 
 ```
 
+```{r}
+getTaskDesc(classif.task)
+getTaskId(classif.task)
+getTaskFeatureNames(classif.task)
+getTaskTargetNames(classif.task)
+getTaskSize(classif.task)
+getTaskNFeats(classif.task)
+getTaskData(classif.task)
+```
+
+modifying a learning task
+
+```{r}
+classif.task.subset <- subsetTask(classif.task, subset = 4:17)
+removeConstantFeatures(obj = classif.task.subset)
+dropFeatures(task = classif.task.subset, features = getTaskFeatureNames(task = classif.task.subset)[c(1,2,3)])
+
+
+
+```
+
+Constructing/Accessing/Modifying/Listing learners
+
+1. Set hyperparameters
+2. Control output for later prediction. class labels/probabilities (reponse/prob).
+3. Set ID
+
+```{r}
+classif.lrn <- makeLearner(cl = 'classif.randomForest', predict.type = 'prob', id = 'lrn', fix.factors.prediction = TRUE)
+
+
+regr.lrn <- makeLearner(cl = 'regr.gbm', id = 'regr.lrn', par.vals = list(n.trees = 500, interaction.depth = 3))
+
+cox.lrn <- makeLearner(cl = 'surv.coxph', id = 'cox')
+
+cluster.lrn <- makeLearner(cl = 'cluster.kmeans', centers = 5)
+
+
+
+
+```
+```{r}
+cluster.lrn$par.vals
+classif.lrn$par.set
+regr.lrn$par.vals
+
+str(classif.lrn)
+
+getLearnerParVals(regr.lrn)
+
+getParamSet(regr.lrn)
+
+getLearnerParamSet(learner = regr.lrn)
+getParamSet('classif.randomForest')
+getLearnerShortName(learner = 'classif.randomForest')
+
+
+setLearnerId(learner = cox.lrn, id = 'CoxModel')
+classif.lrn.predType <- setPredictType(learner = classif.lrn, predict.type = 'response')
+
+cluster.lrn <- setHyperPars(learner = cluster.lrn, centers = 4, par.vals = list(centers = 6))
+
+regr.lrn <- removeHyperPars(learner = regr.lrn, ids = c( 'interaction.depth'))
+getHyperPars(regr.lrn)
+
+
+lrns <- listLearners()
+
+lrns <- listLearners(obj = 'classif', properties = 'prob')
+
+lrns <- listLearners(obj = classif.task, properties = 'prob')
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
