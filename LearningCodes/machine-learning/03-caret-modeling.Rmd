@@ -1,0 +1,87 @@
+---
+title: "Caret modeling"
+output: html_notebook
+---
+
+Training and parameter tuning
+
+model building and evaluation process.
+1. evaluate, using resampling, the effect of model tuning parameters on performance
+2. choose the 'optimal' model across these parameters
+3. estimate model performance from a training set
+
+
+Once the model and tuning parameter values have been defined, the type of resampling should be also be specified.
+
+1. k-fold cross-validation
+2. leave-one-out cromss-validation
+3. bootstrap
+
+After resampling, the process produces a profile of performance measures is available to guide the user as which tuning parameter values should be chosen.
+
+By default, the function automatically chooses the tuning parameters associated with the best value.
+
+```{r}
+library(mlbench)
+
+data(Sonar)
+str(Sonar[, 1:10])
+```
+
+create a stratified random sample of the data into training and test set.
+
+```{r}
+library(caret)
+set.seed(998)
+
+
+inTraining <- createDataPartition(Sonar$Class, p = 0.75, list = FALSE)
+training <- Sonar[inTraining, ]
+testing <- Sonar[-inTraining, ]
+```
+
+Basic parameter Tuning
+
+```{r}
+fitControl <- trainControl( ## 10 fold Cv
+  method = 'repeatedcv',
+  number = 10,
+  repeats = 10
+)
+
+set.seed(825)
+
+gbmFit1 <- train(Class ~ ., data = training, method = 'gbm', trControl = fitControl, verbose = FALSE)
+
+
+```
+
+
+```{r}
+gbmGrid <- expand.grid(interaction.depth = c(1, 5, 9), n.trees = (1:30) * 50, shrinkage = 0.1, n.minobsinnode = 20)
+
+
+set.seed(825)
+
+gbmFit2 <- train(
+  Class ~ .,
+  data = training,
+  method = 'gbm',
+  trControl = fitControl,
+  verbose = FALSE,
+  tuneGrid = gbmGrid
+)
+gbmFit2
+
+
+trellis.par.set(caretTheme())
+
+plot(gbmFit2)
+
+plot(gbmFit2, metric = 'Kappa')
+ggplot(gbmFit2)
+
+```
+
+
+
