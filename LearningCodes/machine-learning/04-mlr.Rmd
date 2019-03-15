@@ -8,9 +8,44 @@ output: html_notebook
 Supervised learning regression, specify the name of the target variable.
 
 ```{r}
-data("BostonHousing")
+library(mlr)
+library(magrittr)
+data("BostonHousing", package = 'mlbench')
+
+regr.task <- makeRegrTask(id = 'bh', data = BostonHousing, target = 'medv')
 
 
 ```
 
+```{r}
+data(BreastCancer, package = 'mlbench')
+
+df <- BreastCancer
+df$Id <- NULL
+
+classif.task <- makeClassifTask(
+  id = 'breastcancer',
+  data = df, 
+  target = 'Class',
+  positive = 'malignant'
+)
+classif.task
+
+```
+
+```{r}
+data(lung, package = 'survival')
+str(lung)
+
+lung$status = (lung$status == 2)
+surv.task <- makeSurvTask(id = 'lung', data = lung, target = c('time', 'status'))
+
+```
+
+```{r}
+data(mtcars, package = 'datasets')
+cluster.task <- makeClusterTask(data = mtcars)
+
+
+```
 
