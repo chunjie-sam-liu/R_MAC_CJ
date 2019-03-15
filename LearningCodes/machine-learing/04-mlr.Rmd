@@ -1,0 +1,16 @@
+---
+title: "R mlr"
+output: html_notebook
+---
+
+## Regression
+
+Supervised learning regression, specify the name of the target variable.
+
+```{r}
+data("BostonHousing")
+
+
+```
+
+
