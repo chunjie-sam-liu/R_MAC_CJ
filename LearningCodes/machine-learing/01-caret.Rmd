@@ -194,14 +194,70 @@ inTrain <- sample(seq(along = mdrrClass), length(mdrrClass) / 2)
 
 training <- filteredDescr[inTrain, ]
 test <- filteredDescr[-inTrain, ]
+
+trainMDRR <- mdrrClass[inTrain]
+testMDRR <- mdrrClass[-inTrain]
+
 preProcValues <- preProcess(training, method = c('center', 'scale'))
 
+trainTransformed <- predict(preProcValues, training)
+testTransformed <- predict(preProcValues, test)
+
+plotSubset <- data.frame(scale(mdrrDescr[, c('nC', 'X4v')]))
+
+xyplot(
+  nC ~ X4v,
+  data = plotSubset,
+  groups = mdrrClass,
+  auto.key = list(columns = 2)
+)
+
+```
+Spatial sign
+```{r}
+transformed <- spatialSign(plotSubset)
+
+transformed <- as.data.frame(transformed)
+xyplot(
+  nC ~ X4v,
+  data = transformed,
+  groups = mdrrClass,
+  auto.key = list(columns = 2)
+)
+
+```
+
+
+Box-Cox
+```{r}
+preProcValues2 <- preProcess(training, method = 'BoxCox')
+trainBC <- predict(preProcValues2, training)
+testBC <- predict(preProcValues2, test)
 
 
 ```
 
 
+```{r}
+data("schedulingData")
+str(schedulingData)
+
+```
+```{r}
+pp_hpc <- preProcess(schedulingData[, -8], method = c('center', 'scale', 'YeoJohnson'))
 
 
+transformed <- predict(pp_hpc, newdata = schedulingData[, -8])
+head(schedulingData[, -8])
+head(transformed)
+
+```
+
+
+```{r}
+pp_no_nzv <- preProcess(schedulingData[, -8], method = c('center', 'scale', 'YeoJohnson', 'nzv'))
+
+pp_no_nzv_pre <- predict(pp_no_nzv, newdata = schedulingData[, -8])
+```
 
 
