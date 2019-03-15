@@ -260,4 +260,20 @@ pp_no_nzv <- preProcess(schedulingData[, -8], method = c('center', 'scale', 'Yeo
 pp_no_nzv_pre <- predict(pp_no_nzv, newdata = schedulingData[, -8])
 ```
 
+Class distance calculations
+
+```{r}
+centroids <- classDist(trainBC, trainMDRR)
+distances <- predict(centroids, testBC)
+distances <- as.data.frame(distances)
+
+
+xyplot(
+  dist.Active ~ dist.Inactive,
+  data = distances,
+  groups = testMDRR,
+  auto.key = list(columns = 2)
+)
+```
+
 
