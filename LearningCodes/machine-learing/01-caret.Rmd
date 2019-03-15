@@ -113,8 +113,92 @@ data.frame(table(mdrrDescr$nR11))
 ```
 
 
+```{r}
+nzv <- nearZeroVar(mdrrDescr, saveMetrics = TRUE)
+head(nzv)
+nzv[nzv$nzv, ][1:10,]
+```
+
+```{r}
+dim(mdrrDescr)
+```
+```{r}
+nzv <- nearZeroVar(mdrrDescr)
+filteredDescr <- mdrrDescr[, -nzv]
+dim(filteredDescr)
+```
+
+```{r}
+data("GermanCredit")
+library(MASS)
+r <- lda(formula = Class ~ ., data = GermanCredit)
+
+x <- nearZeroVar(GermanCredit, saveMetrics = TRUE)
+
+x[x[, 'zeroVar'], ]
+
+x[x[, 'zeroVar'] + x[, 'nzv'] > 0, ] %>% dim()
+
+```
+
+Identifying Correlated Predictors
+
+```{r}
+descrCor <- cor(filteredDescr)
+highCorr <- sum(abs(descrCor[upper.tri(descrCor)]) >.999)
+
+summary(descrCor[upper.tri(descrCor)])
+
+highlyCorDescr <-  findCorrelation(descrCor, cutoff = 0.75)
+
+filteredDescr <- filteredDescr[, -highlyCorDescr]
+descrCor2 <- cor(filteredDescr)
+summary(descrCor2[upper.tri(descrCor2)])
 
 
+```
+
+
+```{r}
+ltfrDesign <- matrix(0, nrow = 6, ncol = 6)
+ltfrDesign[,1] <- c(1, 1, 1, 1, 1, 1)
+ltfrDesign[,2] <- c(1, 1, 1, 0, 0, 0)
+ltfrDesign[,3] <- c(0, 0, 0, 1, 1, 1)
+ltfrDesign[,4] <- c(1, 0, 0, 1, 0, 0)
+ltfrDesign[,5] <- c(0, 1, 0, 0, 1, 0)
+ltfrDesign[,6] <- c(0, 0, 1, 0, 0, 1)
+
+comboInfo <- findLinearCombos(ltfrDesign)
+
+ltfrDesign[, -comboInfo$remove]
+
+```
+
+The `preProcess` Function
+Centering and Scaling
+
+Understanding scale in R.
+
+Scale with default settings will calculate the mean and standard deviation for the entire vector, the 'scale' each element by those values by subtracting the mean and dividig by the sd.
+
+if scale = FALSE, iit will only subtract the mean but not divide by the std deviation.
+
+It provides nothing else but a standardization of the data. The values it creates are known under several different names, one of them being z-score
+
+Fisher z-transformation in statistics.
+
+
+```{r}
+set.seed(96)
+inTrain <- sample(seq(along = mdrrClass), length(mdrrClass) / 2)
+
+training <- filteredDescr[inTrain, ]
+test <- filteredDescr[-inTrain, ]
+preProcValues <- preProcess(training, method = c('center', 'scale'))
+
+
+
+```
 
 
 
