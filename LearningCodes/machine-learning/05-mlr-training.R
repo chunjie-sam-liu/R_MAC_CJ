@@ -117,8 +117,10 @@ pred <- predict(object = mod, newdata = iris)
 
 conf.matrix <- calculateConfusionMatrix(pred = pred, relative = TRUE, sums = TRUE)
 
-#
+plotLearnerPrediction(lrn, task = iris.task)
 
+#
+library(caret)
 
 
 
