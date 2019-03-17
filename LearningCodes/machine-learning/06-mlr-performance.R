@@ -242,6 +242,26 @@ ctrl <- makeTuneControlRandom(maxit = 10L)
 
 ctrl <- makeTuneControlRandom(maxit = 200L)
 
+# define resampling strategies and make note of performance measure.
+
+
+rdesc <- makeResampleDesc(method = 'CV', iters = 3)
+
+
+# combine pieces ----------------------------------------------------------
+
+discrete_ps <- makeParamSet(
+  makeDiscreteParam(id = 'C', values = c(0.5, 1.0, 1.5, 2.0)),
+  makeDiscreteParam(id = 'sigma', values = c(0.5, 1.0, 1.5, 2.0))
+)
+ctrl <- makeTuneControlGrid()
+rdesc <- makeResampleDesc(method = 'CV', iters = 3L)
+res <- tuneParams(learner = 'classif.ksvm', task = iris.task, resampling = rdesc, par.set = discrete_ps, control = ctrl)
+
+
+
+
+
 
 
 
