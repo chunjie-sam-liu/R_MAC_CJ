@@ -258,10 +258,38 @@ ctrl <- makeTuneControlGrid()
 rdesc <- makeResampleDesc(method = 'CV', iters = 3L)
 res <- tuneParams(learner = 'classif.ksvm', task = iris.task, resampling = rdesc, par.set = discrete_ps, control = ctrl)
 
+num_set <- makeParamSet(
+  makeNumericParam(id = 'C', lower = -10, upper = 10, trafo = function(x) 10^x),
+  makeNumericParam(id = 'sigma', lower = -10, upper = 10, trafo = function(x) 10^x)
+)
+ctrl <- makeTuneControlRandom(maxit = 100L)
+res <- tuneParams(
+  learner = 'classif.ksvm', 
+  task = iris.task, 
+  resampling = rdesc, 
+  par.set = num_set, 
+  control = ctrl, 
+  measures = list(acc, setAggregation(acc, test.sd)), 
+  show.info = FALSE
+  )
 
+# generate a Learner with optimal hyperparameter settings
 
+lrn <- setHyperPars(learner = makeLearner(cl = 'classif.ksvm'), par.vals = res$x)
 
+lrn
+m <- train(lrn, iris.task)
+predict(m, task = iris.task)
 
+generateHyperParsEffectData(tune.result = res)
+generateHyperParsEffectData(tune.result = res, trafo = TRUE)
 
+rdesc2 <- makeResampleDesc(method = 'Holdout', predict = 'both')
+res2 <- tuneParams(learner = 'classif.ksvm', task = iris.task, resampling = rdesc2, par.set = num_set, control = ctrl, measures = list(acc, setAggregation(acc, train.mean)), show.info = FALSE)
 
+generateHyperParsEffectData(tune.result = res2)
 
+res <- tuneParams(learner = 'classif.ksvm', task = iris.task, resampling = rdesc, measures = list(acc, mmce), par.set = num_set, control = ctrl, show.info = FALSE)
+
+data <- generateHyperParsEffectData(tune.result = res)
+plotHyperParsEffect(hyperpars.effect.data = data, x = 'iteration', y = 'acc.test.mean', plot.type = 'line')
