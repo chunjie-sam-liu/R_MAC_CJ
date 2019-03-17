@@ -187,3 +187,61 @@ r$extract
 
 # 1. the search space
 # 2. optimization algorithm (aka tuning method)
+# 3. an evaluation method: a resampling 
+
+
+# create a search space for the C hyperparameter from 0.01 to 0.1
+ps <- makeParamSet(
+  makeNumericLearnerParam(id = 'C', lower = 0.01, upper = 0.1)
+)
+
+# optimization algorithm could be performing random search on space.
+# random search with 1000 iterations
+ctrl <- makeTuneControlRandom(maxit = 100L)
+
+# evaluation method could be 3-fold CV using accuracy as the performance measure.
+
+rdesc <- makeResampleDesc(method = 'CV', iters = 3L)
+measure <- acc
+
+# define a space from 10^-10 to 10^10
+# let the optimization algorithm decide which points to choose.
+
+
+discrete_ps <- makeParamSet(
+  makeDiscreteParam(id = 'C', values = c(0.5, 1.0, 1.5, 2.0)),
+  makeDiscreteParam(id = 'sigma', values = c(0.5, 1.0, 1.5, 2.0))
+)
+
+num_ps <- makeParamSet(
+  makeNumericParam(id = 'C', lower = -10, upper = 10, trafo = function(x) 10^x),
+  makeNumericParam(id = 'sigma', lower = -10, upper = 10, trafo = function(x) 10^x)
+)
+
+# optimization algorithm
+# TuneControl
+# grid search/ random search.
+
+
+# for discrete_ps
+# grid search will simply be the cross product 4*4=16 combinations
+ctrl <- makeTuneControlGrid()
+
+
+# for the case of num_ps
+# grid search will create a grid using equally-sized steps.
+# grid search will span the space in 10 equal-sized steps. The number of steps can be changed with the resolution argument.
+ctrl <- makeTuneControlGrid(resolution = 15L)
+
+# Grid search is normally too slow in practice.
+# for random search randomly choose from the specified values.
+ctrl <- makeTuneControlRandom(maxit = 10L)
+
+
+# for num_ps increase the amount of iterations to ensure we adequately cover the space.
+
+ctrl <- makeTuneControlRandom(maxit = 200L)
+
+
+
+
