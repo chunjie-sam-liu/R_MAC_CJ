@@ -69,16 +69,93 @@ plotFilterValues(fv2) + ggpubr::theme_pubr()
 # Keep the 2 most important features
 filtered.task = filterFeatures(iris.task, method = "information.gain", abs = 2)
 # Keep the 25% most important features
-filtered.task = filterFeatures(iris.task, fval = fv, perc = 0.25)
+filtered.task = filterFeatures(iris.task, fval = fv, perc = 0.75)
 # Keep all features with importance greater than 0.5
-filtered.task = filterFeatures(iris.task, fval = fv, threshold = 0.5)
+filtered.task = filterFeatures(iris.task, fval = fv, threshold = 0.99)
 filtered.task
 
 
+# 1. keep a certain absolute (abs) number of features with highest importance.
+# 2. Keep a certain percentage (perc) of features with highest importance
+# 3. Keep all features whose importance execeed a certain threshold value (threshold)
+
+# feature selection based on a filter method.
+# automate the selection of the features
+# Learner can be fused with a filter method by function makeFilterWrapper()
+# tuning the dataset
 
 
 
+lrn <- makeFilterWrapper(learner = 'classif.fnn', fw.method = 'information.gain', fw.abs = 2)
+rdesc <- makeResampleDesc(method = 'CV', iters = 10)
+r <- resample(learner = lrn, task = iris.task, resampling = rdesc, models = TRUE)
+r$models
 
+
+sfeats <-  sapply(r$models, getFilteredFeatures)
+table(sfeats)
+
+
+
+# Tuning the size of the feature subset
+# tune the number of features
+# 1. The percentage of featuers selected (fw.perc)
+# 2. The absolute number of features selected (fw.abs)
+# 3. The threshold of the filter method (fw.threshold)
+
+lrn <- makeFilterWrapper(learner = 'regr.ksvm', fw.method = 'information.gain')
+ps <- makeParamSet(
+  makeNumericParam('fw.perc', lower = 0, upper = 1),
+  makeNumericParam(id = 'C', lower = -10, upper = 10, trafo = function(x) 10^x),
+  makeNumericParam(id = 'sigma', lower = -10, upper = 10, trafo = function(x) 10^x)
+)
+rdesc <- makeResampleDesc(method = 'CV', iters = 3)
+ctrl <- makeTuneControlRandom(maxit = 20)
+res <- tuneParams(learner = lrn, task = bh.task, resampling = rdesc, measures = mse, par.set = ps, control = ctrl)
+
+
+df <- as.data.frame(res$opt.path)
+df
+
+lrn <- makeFilterWrapper(learner = 'regr.lm', fw.method = 'information.gain', fw.perc = res$x$fw.perc, C = res$x$C, sigma = res$x$sigma)
+
+mod <- train(lrn, bh.task)
+getFilteredFeatures(mod)
+
+
+
+# select a feature subset.
+
+# search strategy
+ctrl <- makeFeatSelControlRandom(maxit = 20L)
+ctrl
+
+rdsc <- makeResampleDesc(method = 'Holdout')
+# select features
+sfeats <- selectFeatures(learner = 'surv.coxph', task = wpbc.task, resampling = rdesc, control = ctrl)
+
+ctrl <- makeFeatSelControlSequential(method = 'sfs', alpha = 0.02)
+rdesc <- makeResampleDesc(method = 'CV', iters = 10)
+
+sfeats <- selectFeatures(learner = 'regr.lm', task = bh.task, resampling = rdesc, measures = mse, control = ctrl)
+sfeats$x
+analyzeFeatSelResult(res = sfeats)
+
+rdesc <- makeResampleDesc(method = 'CV', iters = 3)
+ctrl <- makeFeatSelControlRandom(maxit = 10)
+lrn <- makeFeatSelWrapper(learner = 'surv.coxph', resampling = rdesc, control = ctrl)
+
+mod <- train(learner = lrn, task = wpbc.task)
+
+
+sfeats <- getFeatSelResult(mod)
+sfeats$x
+
+
+task = makeClassifTask(data = iris, target = "Species")
+lrn = makeLearner("classif.ranger", importance = c("permutation"))
+mod = train(lrn, task)
+getFeatureImportance(mod)
 
 
 
