@@ -13,3 +13,15 @@ assay(SE)
 colData(SE)
 
 data_norm <- DaMiR.normalization(data = SE, minCounts = 10, fSample = 0.7, hyper = 'yes', th.cv = 3)
+assay(data_norm)
+assay(SE)
+
+
+data_filt <- DaMiR.sampleFilt(data = data_norm, th.corr = 0.9)
+
+sv <- DaMiR.SV(data = data_filt, method = 'fve')
+
+
+DaMiR.corrplot(sv = sv, colData(data.fit), sig.level = 0.01)
+
+data_adjust <- DaMiR.SVadjust(data = data_filt, sv = sv)
