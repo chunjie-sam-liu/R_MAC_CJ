@@ -28,3 +28,7 @@ data_adjust <- DaMiR.SVadjust(data = data_filt, sv = sv, n.sv = 4)
 
 DaMiR.Allplot(data = data_filt, colData(data_filt))
 DaMiR.Allplot(data = data_adjust, colData(data_adjust))
+
+data_clean <- DaMiR.transpose(assay(data_adjust))
+df <- colData(data_adjust)
+data_reduced <- DaMiR.FSelect(data_clean, df, th.corr=0.4)
