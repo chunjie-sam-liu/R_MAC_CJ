@@ -1,5 +1,5 @@
 library(DaMiRseq)
-
+library(DESeq2)
 # 1. normalization
 # 2. feature selection
 # 3. classification
@@ -24,4 +24,7 @@ sv <- DaMiR.SV(data = data_filt, method = 'fve')
 
 DaMiR.corrplot(sv = sv, colData(data.fit), sig.level = 0.01)
 
-data_adjust <- DaMiR.SVadjust(data = data_filt, sv = sv)
+data_adjust <- DaMiR.SVadjust(data = data_filt, sv = sv, n.sv = 4)
+
+DaMiR.Allplot(data = data_filt, colData(data_filt))
+DaMiR.Allplot(data = data_adjust, colData(data_adjust))
