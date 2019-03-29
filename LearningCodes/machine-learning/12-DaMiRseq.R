@@ -3,7 +3,6 @@ library(DESeq2)
 # 1. normalization
 # 2. feature selection
 # 3. classification
-
 # 1. limits overfitting
 # 2. improves classification performance of predicitors.
 # 3. reduces time training processing
