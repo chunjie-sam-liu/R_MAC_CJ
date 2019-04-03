@@ -13,3 +13,16 @@ fpkmToTpm <- function(fpkm) {
 countToEffCounts <- function(counts, len, effLen) {
   counts * (len / effLen)
 }
+
+
+cnts <- c(4250, 3300, 200, 1750, 50, 0)
+lens <- c(900, 1020, 2000, 770, 3000, 1777)
+countDf <- data.frame(count = cnts, length = lens)
+
+
+countDf$effLength <- countDf$length - 203.7 + 1
+
+countDf$tpm <- with(countDf, countToTpm(count, effLength))
+countDf$fpkm <- with(countDf, countToFpkm(count, effLength))
+with(countDf, all.equal(tpm, fpkmToTpm(fpkm)))
+countDf$effCounts <- with(countDf, countToEffCounts(count, length, effLength))
