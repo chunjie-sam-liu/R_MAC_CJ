@@ -12,6 +12,7 @@ fpkmToTpm <- function(fpkm) {
 }
 countToEffCounts <- function(counts, len, effLen) {
   counts * (len / effLen)
+  
 }
 
 
