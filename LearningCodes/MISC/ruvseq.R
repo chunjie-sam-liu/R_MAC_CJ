@@ -24,3 +24,21 @@ set1 <- RUVg(set, spikes, k=1)
 pData(set1)
 plotRLE(set1, outline=FALSE, ylim=c(-4, 4), col=colors[x])
 plotPCA(set1, col=colors[x], cex=1.2)
+
+
+
+design <- model.matrix(~x, data=pData(set))
+y <- DGEList(counts=counts(set), group=x)
+y <- calcNormFactors(y, method="upperquartile")
+y <- estimateGLMCommonDisp(y, design)
+y <- estimateGLMTagwiseDisp(y, design)
+fit <- glmFit(y, design)
+lrt <- glmLRT(fit, coef=2)
+top <- topTags(lrt, n=nrow(set))$table
+empirical <- rownames(set)[which(!(rownames(set) %in% rownames(top)[1:5000]))]
+
+
+set2 <- RUVg(set, empirical, k=1)
+pData(set2)
+plotRLE(set2, outline=FALSE, ylim=c(-4, 4), col=colors[x])
+plotPCA(set2, col=colors[x], cex=1.2)
