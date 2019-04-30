@@ -43,3 +43,8 @@ ens <- mRMR.ensemble(data = dd, target_indices = c(1), solution_count = 1, featu
 
 
 causality(ens)
+
+ge <- mRMR.data(data = data.frame(cgps.ge[ , 1:100, drop=FALSE]))
+exect <- system.time(fs <- new("mRMRe.Filter", data = ge, target_indices = 1,
+                               levels = c(8, 1, 1, 1, 1)))
+print(exect)
