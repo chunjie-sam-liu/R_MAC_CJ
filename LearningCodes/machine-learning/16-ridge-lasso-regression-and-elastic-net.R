@@ -91,6 +91,7 @@ ridge <- train(
   trControl = trainControl("cv", number = 10),
   tuneGrid = expand.grid(alpha = 0, lambda = lambda)
 )
+
 # Model coefficients
 coef(ridge$finalModel, ridge$bestTune$lambda)
 # Make predictions
